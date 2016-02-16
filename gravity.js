@@ -2,9 +2,9 @@
     window.addEventListener('load', startGame);
 })();
 
-function stepRocket(gameState, constants) {
-    var distx = (gameState.rocketPos[0] - gameState.planetPos[0]);
-    var disty = (gameState.rocketPos[1] - gameState.planetPos[1]);
+function dvFromPlanet(planetPos, rocketPos, constants) {
+    var distx = (rocketPos[0] - planetPos[0]);
+    var disty = (rocketPos[1] - planetPos[1]);
     var r = Math.sqrt(Math.pow(distx, 2) + Math.pow(disty, 2));
     //console.log("r = " + r);
     var dvx = dvy = 0.0;
@@ -25,10 +25,21 @@ function stepRocket(gameState, constants) {
         //console.log('dvx = ' + dvx);
         //console.log('dvy = ' + dvy);
     }
+    return [dvx, dvy];
+}
+
+function stepRocket(gameState, constants) {
+    var dvEachPlanet = gameState.planetPositions.map(function(planetPos) {
+        return dvFromPlanet(planetPos, gameState.rocketPos, constants);
+    });
     //console.log("dvx, dvy = " + dvx + ", " + dvy);
-    // find the new velocity
-    var vx = gameState.rocketVel[0] + dvx;
-    var vy = gameState.rocketVel[1] + dvy;
+    // update the velocity using the velocity change due to each planet:
+    var vx = gameState.rocketVel[0];
+    var vy = gameState.rocketVel[1];
+    dvEachPlanet.forEach(function(dv) {
+        vx += dv[0];
+        vy += dv[1];
+    });
     //console.log('vx = ' + vx);
     //console.log('vy = ' + vy);
     // find the change in position in x and y
@@ -41,7 +52,7 @@ function stepRocket(gameState, constants) {
     var newGameState = {
         rocketPos: [x, y],
         rocketVel: [vx, vy],
-        planetPos: gameState.planetPos // approximately no movement in planet
+        planetPositions: gameState.planetPositions // approximately no movement in planets
     };
 
     return newGameState;
@@ -58,7 +69,7 @@ function startGame() {
     var initialGameState = {
         rocketPos: [0.7, 0.7],
         rocketVel: [-1.0, 0.0],
-        planetPos: [0.5, 0.5]
+        planetPositions: [[0.5, 0.5]]
     };
 
     var runningQ = false;
@@ -96,17 +107,18 @@ function startGame() {
         ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
         ctx.fill();
         ctx.closePath();
-        // draw the planet
-        var xPlanet = gameState.planetPos[0];
-        var yPlanet = gameState.planetPos[1];
-        var xPlanetCanvas = xPlanet * canvasWidth;
-        var yPlanetCanvas = yPlanet * canvasHeight;
-        // draw the rocket
-        ctx.beginPath();
-        ctx.fillStyle = 'blue';
-        ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
-        ctx.fill();
-        ctx.closePath();
+        // draw the planets
+        gameState.planetPositions.forEach(function(planetPos) {
+            var xPlanet = planetPos[0];
+            var yPlanet = planetPos[1];
+            var xPlanetCanvas = xPlanet * canvasWidth;
+            var yPlanetCanvas = (1.0 - yPlanet) * canvasHeight;
+            ctx.beginPath();
+            ctx.fillStyle = 'blue';
+            ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
+            ctx.fill();
+            ctx.closePath();
+        });
     }
 
     stepGameState();
