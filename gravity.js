@@ -67,9 +67,9 @@ function startGame() {
     };
 
     var initialGameState = {
-        rocketPos: [0.7, 0.7],
-        rocketVel: [-1.0, 0.0],
-        planetPositions: [[0.5, 0.5]]
+        rocketPos: [0.75, 0.0],
+        rocketVel: [-1.0, 1.0],
+        planetPositions: [[0.25, 0.25], [0.75, 0.75]]
     };
 
     var runningQ = false;
