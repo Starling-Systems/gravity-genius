@@ -3,3 +3,12 @@ canvas {
     border-color: gray;
     border-width: 1px;
 }
+
+#canvas, #buttons, h1 {
+    text-align: center;
+}
+
+#buttons {
+    margin: 20px 0;
+}
+

@@ -48,7 +48,11 @@ function stepRocket(gameState, constants) {
     // find the updated position
     var x = gameState.rocketPos[0] + dx;
     var y = gameState.rocketPos[1] + dy;
-
+    // use periodic boundaries
+    if (x > 1.0) x = x - 1.0;
+    if (x < 0.0) x = x + 1.0;
+    if (y > 1.0) y = y - 1.0;
+    if (y < 0.0) y = y + 1.0;
     var newGameState = {
         rocketPos: [x, y],
         rocketVel: [vx, vy],
@@ -122,8 +126,8 @@ function startGame() {
         runningQ = true;
         stepGameState();
     });
-    var stopButton = document.getElementById('stop');
-    stopButton.addEventListener('click', function() {
+    var pauseButton = document.getElementById('pause');
+    pauseButton.addEventListener('click', function() {
         runningQ = false;
     });
 
@@ -144,6 +148,14 @@ function startGame() {
 
     var gameState = initialGameState;
     renderGame(gameState, constants, graphics);
+
+    var resetButton = document.getElementById('reset');
+    resetButton.addEventListener('click', function() {
+        runningQ = false;
+        gameState = initialGameState;
+        renderGame(gameState, constants, graphics);
+    });
+
 
     function stepGameState() {
         if (!runningQ) return;
