@@ -106,10 +106,12 @@ function startGame() {
         dt: 0.001, // simulation time step
     };
 
+    var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
+
     var initialGameState = {
         rocketPos: [0.75, 0.1],
         rocketVel: [-1.0, 1.0],
-        planetPositions: [[0.25, 0.25], [0.75, 0.75]]
+        planetPositions: planetPositions
     };
 
     var runningQ = false;
@@ -128,6 +130,15 @@ function startGame() {
     graphics.canvasWidth = graphics.canvas.width;
     graphics.canvasHeight = graphics.canvas.height;
     graphics.ctx = graphics.canvas.getContext("2d");
+
+    graphics.canvas.addEventListener('click', function(event) {
+        var xCanvas = event.pageX - graphics.canvas.offsetLeft;
+        var yCanvas = event.pageY - graphics.canvas.offsetTop;
+        var x = xCanvas / graphics.canvas.width;
+        var y = yCanvas / graphics.canvas.height;
+        y = 1.0 - y;
+        planetPositions.push([x, y]);
+    });
 
     var gameState = initialGameState;
     renderGame(gameState, constants, graphics);
