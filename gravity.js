@@ -83,12 +83,14 @@ function renderGame(gameState, constants, graphics) {
         var disty = (y - yPlanet);
         var r = Math.sqrt(Math.pow(distx, 2) + Math.pow(disty, 2));
         //console.log(r*r);
+        /*
         graphics.ctx.beginPath();
         graphics.ctx.lineWidth = Math.min(0.1/(r*r), 3.0);
         graphics.ctx.moveTo(xCanvas, yCanvas);
         graphics.ctx.lineTo(xCanvas + 0.2*(xPlanetCanvas - xCanvas), yCanvas + 0.2*(yPlanetCanvas - yCanvas));
         graphics.ctx.stroke();
         graphics.ctx.closePath();
+        */
         graphics.ctx.lineWidth = 1.0;
         graphics.ctx.beginPath();
         graphics.ctx.fillStyle = 'blue';
