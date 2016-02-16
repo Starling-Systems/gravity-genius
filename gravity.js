@@ -58,6 +58,46 @@ function stepRocket(gameState, constants) {
     return newGameState;
 }
 
+function renderGame(gameState, constants, graphics) {
+    // clear the canvas for the next draw:
+    graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
+    // draw the rocket
+    var x = gameState.rocketPos[0];
+    var y = gameState.rocketPos[1];
+    //console.log("x, y = " + x + ", " + y);
+    var xCanvas = x * graphics.canvasWidth;
+    var yCanvas = (1.0 - y) * graphics.canvasHeight;
+    graphics.ctx.lineWidth = 1.0;
+    graphics.ctx.beginPath();
+    graphics.ctx.fillStyle = 'black';
+    graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
+    graphics.ctx.fill();
+    graphics.ctx.closePath();
+    // draw the planets
+    gameState.planetPositions.forEach(function(planetPos) {
+        var xPlanet = planetPos[0];
+        var yPlanet = planetPos[1];
+        var xPlanetCanvas = xPlanet * graphics.canvasWidth;
+        var yPlanetCanvas = (1.0 - yPlanet) * graphics.canvasHeight;
+        var distx = (x - xPlanet);
+        var disty = (y - yPlanet);
+        var r = Math.sqrt(Math.pow(distx, 2) + Math.pow(disty, 2));
+        //console.log(r*r);
+        graphics.ctx.beginPath();
+        graphics.ctx.lineWidth = Math.min(0.1/(r*r), 3.0);
+        graphics.ctx.moveTo(xCanvas, yCanvas);
+        graphics.ctx.lineTo(xCanvas + 0.2*(xPlanetCanvas - xCanvas), yCanvas + 0.2*(yPlanetCanvas - yCanvas));
+        graphics.ctx.stroke();
+        graphics.ctx.closePath();
+        graphics.ctx.lineWidth = 1.0;
+        graphics.ctx.beginPath();
+        graphics.ctx.fillStyle = 'blue';
+        graphics.ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
+        graphics.ctx.fill();
+        graphics.ctx.closePath();
+    });
+}
+
 function startGame() {
     var constants = {
         planetMass: 1.0,
@@ -67,7 +107,7 @@ function startGame() {
     };
 
     var initialGameState = {
-        rocketPos: [0.75, 0.0],
+        rocketPos: [0.75, 0.1],
         rocketVel: [-1.0, 1.0],
         planetPositions: [[0.25, 0.25], [0.75, 0.75]]
     };
@@ -83,44 +123,23 @@ function startGame() {
         runningQ = false;
     });
 
-    var canvas = document.getElementById("myCanvas");
-    var canvasWidth = canvas.width;
-    var canvasHeight = canvas.height;
-    var ctx = canvas.getContext("2d");
+    var graphics = {};
+    graphics.canvas = document.getElementById("myCanvas");
+    graphics.canvasWidth = graphics.canvas.width;
+    graphics.canvasHeight = graphics.canvas.height;
+    graphics.ctx = graphics.canvas.getContext("2d");
 
     var gameState = initialGameState;
+    renderGame(gameState, constants, graphics);
+
     function stepGameState() {
         if (!runningQ) return;
         requestAnimationFrame(stepGameState);
-
         gameState = stepRocket(gameState, constants);
-        // clear the canvas for the next draw:
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        var x = gameState.rocketPos[0];
-        var y = gameState.rocketPos[1];
-        //console.log("x, y = " + x + ", " + y);
-        var xCanvas = x * canvasWidth;
-        var yCanvas = (1.0 - y) * canvasHeight;
-        // draw the rocket
-        ctx.beginPath();
-        ctx.fillStyle = 'black';
-        ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
-        ctx.fill();
-        ctx.closePath();
-        // draw the planets
-        gameState.planetPositions.forEach(function(planetPos) {
-            var xPlanet = planetPos[0];
-            var yPlanet = planetPos[1];
-            var xPlanetCanvas = xPlanet * canvasWidth;
-            var yPlanetCanvas = (1.0 - yPlanet) * canvasHeight;
-            ctx.beginPath();
-            ctx.fillStyle = 'blue';
-            ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
-            ctx.fill();
-            ctx.closePath();
-        });
+        renderGame(gameState, constants, graphics);
     }
 
     stepGameState();
 
 }
+
