@@ -50,6 +50,14 @@ function stepRocket(gameState, constants) {
     vy += dvTarget[1];
     //console.log('vx = ' + vx);
     //console.log('vy = ' + vy);
+    // if the rocket is inside the target, the target slows it down:
+    if ((gameState.rocketPos[0] <= gameState.targetPosition[0] + constants.targetWidth/2) &&
+        (gameState.rocketPos[0] >= gameState.targetPosition[0] - constants.targetWidth/2) &&
+        (gameState.rocketPos[1] <= gameState.targetPosition[1] + constants.targetWidth/2) &&
+        (gameState.rocketPos[1] >= gameState.targetPosition[1] - constants.targetWidth/2)) {
+            vx = vx * 0.5;
+            vy = vy * 0.5;
+    }
     // find the change in position in x and y
     var dx = vx * constants.dt;
     var dy = vy * constants.dt;
@@ -74,18 +82,6 @@ function stepRocket(gameState, constants) {
 function renderGame(gameState, constants, graphics) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
-    // draw the rocket
-    var x = gameState.rocketPos[0];
-    var y = gameState.rocketPos[1];
-    //console.log("x, y = " + x + ", " + y);
-    var xCanvas = x * graphics.canvasWidth;
-    var yCanvas = (1.0 - y) * graphics.canvasHeight;
-    graphics.ctx.lineWidth = 1.0;
-    graphics.ctx.beginPath();
-    graphics.ctx.fillStyle = 'black';
-    graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
-    graphics.ctx.fill();
-    graphics.ctx.closePath();
     // draw the planets
     gameState.planetPositions.forEach(function(planetPos) {
         var xPlanet = planetPos[0];
@@ -116,10 +112,19 @@ function renderGame(gameState, constants, graphics) {
     var yTarget = gameState.targetPosition[1];
     var xTargetCanvas = xTarget * graphics.canvasWidth;
     var yTargetCanvas = (1.0 - yTarget) * graphics.canvasHeight;
-    graphics.ctx.lineWidth = 1.0;
-    graphics.ctx.beginPath();
+    var targetWidthCanvas = constants.targetWidth * graphics.canvasWidth;
     graphics.ctx.fillStyle = 'red';
-    graphics.ctx.arc(xTargetCanvas, yTargetCanvas, 5, 0, 2*Math.PI, false);
+    graphics.ctx.fillRect(xTargetCanvas - targetWidthCanvas/2.0, yTargetCanvas - targetWidthCanvas/2.0, targetWidthCanvas, targetWidthCanvas);
+    // draw the rocket
+    var x = gameState.rocketPos[0];
+    var y = gameState.rocketPos[1];
+    //console.log("x, y = " + x + ", " + y);
+    var xCanvas = x * graphics.canvasWidth;
+    var yCanvas = (1.0 - y) * graphics.canvasHeight;
+    graphics.ctx.lineWidth = 1.0;
+    graphics.ctx.fillStyle = 'black';
+    graphics.ctx.beginPath();
+    graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
     graphics.ctx.fill();
     graphics.ctx.closePath();
 }
@@ -130,7 +135,8 @@ function startGame() {
         rocketMass: 0.0000001,
         G: 10.0, // gravitational constant
         dt: 0.001, // simulation time step
-        targetForceMultiplier: 2.0
+        targetForceMultiplier: 0.1,
+        targetWidth: 0.06
     };
 
     var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
@@ -176,6 +182,9 @@ function startGame() {
     resetButton.addEventListener('click', function() {
         runningQ = false;
         gameState = initialGameState;
+        // TODO: using planetPositions as a singleton seems janky
+        while (planetPositions.length > 2)
+            planetPositions.pop();
         renderGame(gameState, constants, graphics);
     });
 
