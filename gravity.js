@@ -32,14 +32,22 @@ function stepRocket(gameState, constants) {
     var dvEachPlanet = gameState.planetPositions.map(function(planetPos) {
         return dvFromPlanet(planetPos, gameState.rocketPos, constants);
     });
+    // target has a stronger gravity field:
+    var oldG = constants.G;
+    constants.G = constants.G * constants.targetForceMultiplier;
+    var dvTarget = dvFromPlanet(gameState.targetPosition, gameState.rocketPos, constants);
+    constants.G = oldG;
     //console.log("dvx, dvy = " + dvx + ", " + dvy);
-    // update the velocity using the velocity change due to each planet:
+    // update the velocity due to the pull of each planet:
     var vx = gameState.rocketVel[0];
     var vy = gameState.rocketVel[1];
     dvEachPlanet.forEach(function(dv) {
         vx += dv[0];
         vy += dv[1];
     });
+    // update the velocity from the pull of the target:
+    vx += dvTarget[0];
+    vy += dvTarget[1];
     //console.log('vx = ' + vx);
     //console.log('vy = ' + vy);
     // find the change in position in x and y
@@ -54,9 +62,10 @@ function stepRocket(gameState, constants) {
     if (y > 1.0) y = y - 1.0;
     if (y < 0.0) y = y + 1.0;
     var newGameState = {
-        rocketPos: [x, y],
-        rocketVel: [vx, vy],
-        planetPositions: gameState.planetPositions // approximately no movement in planets
+        rocketPos: [x, y], // FIXME: rename to rocketPosition
+        rocketVel: [vx, vy], // FIXME: rename to rocketVelocity
+        planetPositions: gameState.planetPositions, // approximately no movement in planets
+        targetPosition: gameState.targetPosition
     };
 
     return newGameState;
@@ -83,11 +92,11 @@ function renderGame(gameState, constants, graphics) {
         var yPlanet = planetPos[1];
         var xPlanetCanvas = xPlanet * graphics.canvasWidth;
         var yPlanetCanvas = (1.0 - yPlanet) * graphics.canvasHeight;
+        /*
         var distx = (x - xPlanet);
         var disty = (y - yPlanet);
         var r = Math.sqrt(Math.pow(distx, 2) + Math.pow(disty, 2));
         //console.log(r*r);
-        /*
         graphics.ctx.beginPath();
         graphics.ctx.lineWidth = Math.min(0.1/(r*r), 3.0);
         graphics.ctx.moveTo(xCanvas, yCanvas);
@@ -102,6 +111,17 @@ function renderGame(gameState, constants, graphics) {
         graphics.ctx.fill();
         graphics.ctx.closePath();
     });
+    // draw the target
+    var xTarget = gameState.targetPosition[0];
+    var yTarget = gameState.targetPosition[1];
+    var xTargetCanvas = xTarget * graphics.canvasWidth;
+    var yTargetCanvas = (1.0 - yTarget) * graphics.canvasHeight;
+    graphics.ctx.lineWidth = 1.0;
+    graphics.ctx.beginPath();
+    graphics.ctx.fillStyle = 'red';
+    graphics.ctx.arc(xTargetCanvas, yTargetCanvas, 5, 0, 2*Math.PI, false);
+    graphics.ctx.fill();
+    graphics.ctx.closePath();
 }
 
 function startGame() {
@@ -110,14 +130,17 @@ function startGame() {
         rocketMass: 0.0000001,
         G: 10.0, // gravitational constant
         dt: 0.001, // simulation time step
+        targetForceMultiplier: 2.0
     };
 
     var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
+    var targetPosition = [0.5, 0.5];
 
     var initialGameState = {
         rocketPos: [0.75, 0.1],
         rocketVel: [-1.0, 1.0],
-        planetPositions: planetPositions
+        planetPositions: planetPositions,
+        targetPosition: targetPosition
     };
 
     var runningQ = false;
