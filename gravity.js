@@ -48,6 +48,13 @@ function stepRocket(gameState, constants) {
     // update the velocity from the pull of the target:
     vx += dvTarget[0];
     vy += dvTarget[1];
+
+    // update the velocity from the accelerometer
+    var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * dt;
+    var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * dt;
+    vx += dvxAccelerometer;
+    vy += dvyAccelerometer;
+
     //console.log('vx = ' + vx);
     //console.log('vy = ' + vy);
     // if the rocket is inside the target, the target slows it down:
@@ -55,8 +62,8 @@ function stepRocket(gameState, constants) {
         (gameState.rocketPos[0] >= gameState.targetPosition[0] - constants.targetWidth/2) &&
         (gameState.rocketPos[1] <= gameState.targetPosition[1] + constants.targetWidth/2) &&
         (gameState.rocketPos[1] >= gameState.targetPosition[1] - constants.targetWidth/2)) {
-            vx = vx * 0.5;
-            vy = vy * 0.5;
+            vx = 0.0;
+            vy = 0.0;
     }
     // find the change in position in x and y
     var dx = vx * constants.dt;
@@ -136,17 +143,20 @@ function startGame() {
         G: 10.0, // gravitational constant
         dt: 0.001, // simulation time step
         targetForceMultiplier: 0.1,
-        targetWidth: 0.06
+        targetWidth: 0.06,
+        accelerometerFactor: 1.0
     };
 
     var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
     var targetPosition = [0.5, 0.5];
+    var accelerometer = [0.0, 0.0];
 
     var initialGameState = {
         rocketPos: [0.75, 0.1],
         rocketVel: [-1.0, 1.0],
         planetPositions: planetPositions,
-        targetPosition: targetPosition
+        targetPosition: targetPosition,
+        accelerometer: accelerometer
     };
 
     var runningQ = false;
@@ -188,6 +198,14 @@ function startGame() {
         renderGame(gameState, constants, graphics);
     });
 
+    window.addEventListener('devicemotion', function(event) {
+        if (event.accelerationIncludingGravity) {
+            accelerometer = [
+                event.accelerationIncludingGravity.x,
+                event.accelerationIncludingGravity.y
+            ];
+        }
+    });
 
     function stepGameState() {
         if (!runningQ) return;
