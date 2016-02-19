@@ -200,10 +200,8 @@ function startGame() {
 
     window.addEventListener('devicemotion', function(event) {
         if (event.accelerationIncludingGravity) {
-            accelerometer = [
-                event.accelerationIncludingGravity.x,
-                event.accelerationIncludingGravity.y
-            ];
+            accelerometer[0] = event.accelerationIncludingGravity.x;
+            accelerometer[1] = event.accelerationIncludingGravity.y;
         }
     });
 
