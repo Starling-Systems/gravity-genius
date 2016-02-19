@@ -50,8 +50,8 @@ function stepRocket(gameState, constants) {
     vy += dvTarget[1];
 
     // update the velocity from the accelerometer
-    var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * dt;
-    var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * dt;
+    var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * constants.dt;
+    var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * constants.dt;
     vx += dvxAccelerometer;
     vy += dvyAccelerometer;
 
