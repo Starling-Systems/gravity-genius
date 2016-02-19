@@ -87,11 +87,39 @@ function stepRocket(gameState, constants) {
     return newGameState;
 }
 
-function renderGame(gameState, constants, graphics) {
+function renderBackground(graphics) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
+    // render the basins of attraction of the planets:
+    graphics.ctx.save();
+    graphics.ctx.globalAlpha = 0.4;
+    var fill, xCanvas, yCanvas;
+    var cellWidthCanvas = graphics.canvasWidth / 100.0;
+    var cellHeightCanvas = graphics.canvasHeight / 100.0;
+    var cellOffsetX = 0;
+    var cellOffsetY = cellHeightCanvas;
+    for (var i = 0; i < 100; i++)
+        for (var j = 0; j < 100; j++) {
+            if (graphics.attractorBasins[j][i] === 0) {
+                fill = '#008000'; // green
+            } else {
+                fill = '#0000ff'; // blue
+            }
+            graphics.ctx.fillStyle = fill;
+            xCanvas = (i / 100.0) * graphics.canvasWidth;
+            yCanvas = (1.0 - (j / 100.0)) * graphics.canvasHeight;
+            graphics.ctx.beginPath();
+            graphics.ctx.fillRect(xCanvas - cellOffsetX, yCanvas - cellOffsetY, cellWidthCanvas, cellHeightCanvas);
+            graphics.ctx.closePath();
+        }
+    graphics.ctx.restore();
+}
+
+function renderGame(gameState, constants, graphics) {
+    renderBackground(graphics);
     // draw the planets
-    gameState.planetPositions.forEach(function(planetPos) {
+    var planetColors = ['blue', 'green'];
+    gameState.planetPositions.forEach(function(planetPos, i) {
         var xPlanet = planetPos[0];
         var yPlanet = planetPos[1];
         var xPlanetCanvas = xPlanet * graphics.canvasWidth;
@@ -110,7 +138,7 @@ function renderGame(gameState, constants, graphics) {
         */
         graphics.ctx.lineWidth = 1.0;
         graphics.ctx.beginPath();
-        graphics.ctx.fillStyle = 'blue';
+        graphics.ctx.fillStyle = planetColors[i];
         graphics.ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
         graphics.ctx.fill();
         graphics.ctx.closePath();
@@ -186,13 +214,12 @@ function startGame() {
         planetPositions.push([x, y]);
     });
 
-    var gameState = initialGameState;
-    renderGame(gameState, constants, graphics);
-
     var resetButton = document.getElementById('reset');
     resetButton.addEventListener('click', function() {
         runningQ = false;
-        gameState = initialGameState;
+        gameState.rocketPos = [0.75, 0.1];
+        gameState.rocketVel = [-1.0, 1.0];
+        //gameState = initialGameState;
         // TODO: using planetPositions as a singleton seems janky
         while (planetPositions.length > 2)
             planetPositions.pop();
@@ -206,12 +233,44 @@ function startGame() {
         }
     });
 
+    var gameState = initialGameState;
+
+    // compute planet attractor basins
+    var attractorBasins = [];
+    var basinComputeSteps;
+    for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 100; j++) {
+            if (i === 0) attractorBasins[j] = [];
+            gameState.rocketPos = [i/100.0, j/100.0];
+            gameState.rocketVel = [0.0, 0.0];
+            basinComputeSteps = 100;
+            while (basinComputeSteps-- > 0) gameState = stepRocket(gameState, constants);
+            var p1Dist = Math.sqrt(
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2)
+                + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
+            var p2Dist = Math.sqrt(
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2)
+                + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
+            if (p1Dist >= p2Dist) {
+                attractorBasins[j][i] = 0;
+            } else {
+                attractorBasins[j][i] = 1;
+            }
+        }
+    }
+    graphics.attractorBasins = attractorBasins;
+
+    gameState.rocketPos = [0.75, 0.1],
+    renderGame(gameState, constants, graphics);
+
     function stepGameState() {
         if (!runningQ) return;
         requestAnimationFrame(stepGameState);
         gameState = stepRocket(gameState, constants);
         renderGame(gameState, constants, graphics);
     }
+
+    console.log(initialGameState.rocketPos);
 
     stepGameState();
 
