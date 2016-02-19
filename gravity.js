@@ -80,7 +80,8 @@ function stepRocket(gameState, constants) {
         rocketPos: [x, y], // FIXME: rename to rocketPosition
         rocketVel: [vx, vy], // FIXME: rename to rocketVelocity
         planetPositions: gameState.planetPositions, // approximately no movement in planets
-        targetPosition: gameState.targetPosition
+        targetPosition: gameState.targetPosition,
+        accelerometer: gameState.accelerometer
     };
 
     return newGameState;
