@@ -148,7 +148,7 @@ function startGame() {
         accelerometerFactor: 5.0
     };
 
-    var planetPositions = []; //[[0.25, 0.25], [0.75, 0.75]];
+    var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
     var targetPosition = [0.5, 0.5];
     var accelerometer = [0.0, 0.0];
 
