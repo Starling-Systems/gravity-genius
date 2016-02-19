@@ -144,10 +144,10 @@ function startGame() {
         dt: 0.001, // simulation time step
         targetForceMultiplier: 0.1,
         targetWidth: 0.06,
-        accelerometerFactor: 1.0
+        accelerometerFactor: 5.0
     };
 
-    var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
+    var planetPositions = []; //[[0.25, 0.25], [0.75, 0.75]];
     var targetPosition = [0.5, 0.5];
     var accelerometer = [0.0, 0.0];
 
