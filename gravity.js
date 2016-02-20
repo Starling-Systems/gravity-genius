@@ -235,30 +235,33 @@ function startGame() {
 
     var gameState = initialGameState;
 
-    // compute planet attractor basins
-    var attractorBasins = [];
-    var basinComputeSteps;
-    for (var i = 0; i < 100; i++) {
-        for (var j = 0; j < 100; j++) {
-            if (i === 0) attractorBasins[j] = [];
-            gameState.rocketPos = [i/100.0, j/100.0];
-            gameState.rocketVel = [0.0, 0.0];
-            basinComputeSteps = 100;
-            while (basinComputeSteps-- > 0) gameState = stepRocket(gameState, constants);
-            var p1Dist = Math.sqrt(
-                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2)
-                + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
-            var p2Dist = Math.sqrt(
-                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2)
-                + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
-            if (p1Dist >= p2Dist) {
-                attractorBasins[j][i] = 0;
-            } else {
-                attractorBasins[j][i] = 1;
+    function attractorBasins(gameState) {
+        // compute planet attractor basins
+        var attractorBasins = [];
+        var basinComputeSteps;
+        for (var i = 0; i < 100; i++) {
+            for (var j = 0; j < 100; j++) {
+                if (i === 0) attractorBasins[j] = [];
+                gameState.rocketPos = [i/100.0, j/100.0];
+                gameState.rocketVel = [0.0, 0.0];
+                basinComputeSteps = 100;
+                while (basinComputeSteps-- > 0) gameState = stepRocket(gameState, constants);
+                var p1Dist = Math.sqrt(
+                    Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2)
+                    + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
+                var p2Dist = Math.sqrt(
+                    Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2)
+                    + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
+                if (p1Dist >= p2Dist) {
+                    attractorBasins[j][i] = 0;
+                } else {
+                    attractorBasins[j][i] = 1;
+                }
             }
         }
+        return attractorBasins;
     }
-    graphics.attractorBasins = attractorBasins;
+    graphics.attractorBasins = attractorBasins(gameState);
 
     gameState.rocketPos = [0.75, 0.1],
     renderGame(gameState, constants, graphics);
