@@ -154,7 +154,7 @@ function attractorBasins(gameState, constants) {
 
 function renderGame(gameState, constants, graphics) {
     renderBackground(graphics);
-    // render the rocket path
+    // render rocket path
     graphics.ctx.beginPath();
     var numPathPts = gameState.highlightPath.length;
     var ptXCanvas = gameState.highlightPath[numPathPts - 1][0] * graphics.canvasWidth;
@@ -172,7 +172,7 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.closePath();
     graphics.ctx.strokeStyle = '#d3d3d3';
     graphics.ctx.stroke();
-    // draw the planets
+    // render planets
     var planetColors = ['blue', 'green'];
     gameState.planetPositions.forEach(function(planetPos, i) {
         var xPlanet = planetPos[0];
@@ -194,7 +194,7 @@ function renderGame(gameState, constants, graphics) {
         graphics.ctx.lineWidth = 1.0;
         graphics.ctx.beginPath();
         graphics.ctx.fillStyle = planetColors[i];
-        graphics.ctx.arc(xPlanetCanvas, yPlanetCanvas, 15, 0, 2*Math.PI, false);
+        graphics.ctx.arc(xPlanetCanvas, yPlanetCanvas, constants.planetWidth * graphics.canvasWidth, 0, 2*Math.PI, false);
         graphics.ctx.fill();
         graphics.ctx.closePath();
     });
@@ -225,6 +225,7 @@ function startGame() {
     var canvas = document.getElementById('myCanvas');
     canvas.width = window.innerWidth - 100;
     canvas.height = window.innerHeight - 120; // leave room for buttons
+    console.log(window.innerWidth);
 
     var constants = {
         planetMass: 1.0,
@@ -232,8 +233,9 @@ function startGame() {
         G: 10.0, // gravitational constant
         dt: 0.001, // simulation time step
         targetForceMultiplier: 0.1,
-        targetWidth: 0.02,
-        accelerometerFactor: 40.0
+        targetWidth: 0.04,
+        accelerometerFactor: 40.0,
+        planetWidth: 0.04
     };
 
     var initialRocketPos = [0.75, 0.1];

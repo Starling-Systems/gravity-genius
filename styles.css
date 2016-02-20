@@ -4,6 +4,10 @@ canvas {
     border-width: 1px;
 }
 
+h1 {
+    font-size: 24px;
+}
+
 #canvas, #buttons, h1 {
     text-align: center;
 }
@@ -12,3 +16,16 @@ canvas {
     margin: 20px 0;
 }
 
+button {
+    font-family: Monda;
+    font-size: 14px;
+    border-radius: 5px;
+    border-color: #778899;
+    border-width: 1px;
+    border-style: solid;
+    background-color: #DDEEFF;
+    margin: 0 5px;
+}
+
+@media screen and (max-width: 768px) {
+}
