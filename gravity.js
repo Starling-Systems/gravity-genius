@@ -99,7 +99,7 @@ function stepRocket(gameState, constants) {
 function renderBackground(graphics) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
-    //renderAttractorBasins(graphics);
+    renderAttractorBasins(graphics);
 }
 
 function renderAttractorBasins(graphics) {
@@ -130,6 +130,9 @@ function renderAttractorBasins(graphics) {
 
 function attractorBasins(gameState, constants) {
     // compute planet attractor basins
+    // cache the current position and velocity vectors
+    var pos = gameState.rocketPos;
+    var vel = gameState.rocketVel;
     var attractorBasins = [];
     var basinComputeSteps;
     for (var i = 0; i < 100; i++) {
@@ -153,6 +156,9 @@ function attractorBasins(gameState, constants) {
             }
         }
     }
+    // reinstate the position and velocity
+    gameState.rocketPos = pos;
+    gameState.rocketVel = vel;
     return attractorBasins;
 }
 
@@ -301,17 +307,19 @@ function startGame() {
         var y = yCanvas / graphics.canvas.height;
         y = 1.0 - y;
         planetPositions.push([x, y]);
+        graphics.attractorBasins = attractorBasins(gameState, constants);
     });
 
     var resetButton = document.getElementById('reset');
     resetButton.addEventListener('click', function() {
         runningQ = false;
-        gameState.rocketPos = [0.75, 0.1];
-        gameState.rocketVel = [-1.0, 1.0];
         //gameState = initialGameState;
         // TODO: using planetPositions as a singleton seems janky
         while (planetPositions.length > 2) planetPositions.pop();
         while (highlightPath.length > 1) highlightPath.pop();
+        graphics.attractorBasins = attractorBasins(gameState, constants);
+        gameState.rocketPos = [0.75, 0.1];
+        gameState.rocketVel = [-1.0, 1.0];
         renderGame(gameState, constants, graphics);
     });
 
@@ -331,7 +339,7 @@ function startGame() {
 
     var gameState = initialGameState;
 
-    //graphics.attractorBasins = attractorBasins(gameState, constants);
+    graphics.attractorBasins = attractorBasins(gameState, constants);
 
     gameState.rocketPos = [0.75, 0.1],
     renderGame(gameState, constants, graphics);
