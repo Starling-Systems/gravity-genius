@@ -80,13 +80,17 @@ function stepRocket(gameState, constants) {
     if (y > 1.0) y = y - 1.0;
     if (y < 0.0) y = y + 1.0;
     */
+    // bounce off the walls
+    if (x > 1.0 || x < 0.0) vx = -vx;
+    if (y > 1.0 || y < 0.0) vy = -vy;
     var newGameState = {
         rocketPos: [x, y], // FIXME: rename to rocketPosition
         rocketVel: [vx, vy], // FIXME: rename to rocketVelocity
         planetPositions: gameState.planetPositions, // approximately no movement in planets
         targetPosition: gameState.targetPosition,
         accelerometer: gameState.accelerometer,
-        highlightPath: gameState.highlightPath
+        highlightPath: gameState.highlightPath,
+        debugQ: gameState.debugQ
     };
 
     return newGameState;
@@ -137,16 +141,16 @@ function attractorBasins(gameState, constants) {
             basinComputeSteps = 100;
             while (basinComputeSteps-- > 0) gameState = stepRocket(gameState, constants);
             var p1Dist = Math.sqrt(
-                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2)
-                + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
-                var p2Dist = Math.sqrt(
-                    Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2)
-                    + Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
-                    if (p1Dist >= p2Dist) {
-                        attractorBasins[j][i] = 0;
-                    } else {
-                        attractorBasins[j][i] = 1;
-                    }
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2) +
+                Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
+            var p2Dist = Math.sqrt(
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2) +
+                Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
+            if (p1Dist >= p2Dist) {
+                attractorBasins[j][i] = 0;
+            } else {
+                attractorBasins[j][i] = 1;
+            }
         }
     }
     return attractorBasins;
@@ -154,6 +158,23 @@ function attractorBasins(gameState, constants) {
 
 function renderGame(gameState, constants, graphics) {
     renderBackground(graphics);
+    // render debug panel
+    if (gameState.debugQ) {
+        var yInc = 0.02;
+        var yIncCanvas = 0.02 * graphics.canvasHeight;
+        var textPosX = 0.8;
+        var textPosY = 0.9;
+        var textPosXCanvas = textPosX * graphics.canvasWidth;
+        var textPosYCanvas = (1.0 - textPosY) * graphics.canvasHeight;
+        var xRounded = Math.round(gameState.rocketPos[0] * 100) / 100;
+        var yRounded = Math.round(gameState.rocketPos[1] * 100) / 100;
+        graphics.ctx.fillText('x: ' + xRounded, textPosXCanvas, textPosYCanvas);
+        graphics.ctx.fillText('y: ' + yRounded, textPosXCanvas, textPosYCanvas + yIncCanvas);
+        var vxRounded = Math.round(gameState.rocketVel[0] * 100) / 100;
+        var vyRounded = Math.round(gameState.rocketVel[1] * 100) / 100;
+        graphics.ctx.fillText('vx: ' + vxRounded, textPosXCanvas, textPosYCanvas + 2*yIncCanvas);
+        graphics.ctx.fillText('vy: ' + vyRounded, textPosXCanvas, textPosYCanvas + 3*yIncCanvas);
+    }
     // render rocket path
     graphics.ctx.beginPath();
     var numPathPts = gameState.highlightPath.length;
@@ -223,7 +244,7 @@ function renderGame(gameState, constants, graphics) {
 function startGame() {
     // set canvas size to window size
     var canvas = document.getElementById('myCanvas');
-    canvas.width = window.innerWidth - 100;
+    canvas.width = window.innerWidth - 20;
     canvas.height = window.innerHeight - 120; // leave room for buttons
     console.log(window.innerWidth);
 
@@ -244,6 +265,7 @@ function startGame() {
     var targetPosition = [0.5, 0.5];
     var accelerometer = [0.0, 0.0];
     var highlightPath = [initialRocketPos];
+    var debugQ = false;
 
     var initialGameState = {
         rocketPos: initialRocketPos,
@@ -251,7 +273,8 @@ function startGame() {
         planetPositions: planetPositions,
         targetPosition: targetPosition,
         accelerometer: accelerometer,
-        highlightPath: highlightPath
+        highlightPath: highlightPath,
+        debugQ: debugQ
     };
 
     var runningQ = false;
@@ -289,6 +312,13 @@ function startGame() {
         // TODO: using planetPositions as a singleton seems janky
         while (planetPositions.length > 2) planetPositions.pop();
         while (highlightPath.length > 1) highlightPath.pop();
+        renderGame(gameState, constants, graphics);
+    });
+
+    var debugCheckbox = document.getElementById('debug');
+    debugCheckbox.addEventListener('click', function(e) {
+        if (e.target.checked) gameState.debugQ = true;
+        else gameState.debugQ = false;
         renderGame(gameState, constants, graphics);
     });
 
