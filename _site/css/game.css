@@ -4,6 +4,10 @@ canvas {
     border-width: 1px;
 }
 
+#myCanvas {
+    max-width: 500px;
+}
+
 h1 {
     font-size: 24px;
 }
