@@ -10,8 +10,8 @@ title: Gravity Genius
 email: paul-jean@rule146.com
 description: > # this means to ignore newlines until "baseurl:"
     Quick updates on my progress on the Gravity Genius game.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://paul-jean.github.io/gravity-genius/" # the base hostname & protocol for your site
+baseurl: "/gravity-genius/" # the subpath of your site, e.g. /blog
+url: "http://paul-jean.github.io/" # the base hostname & protocol for your site
 twitter_username: rule146
 github_username:  paul-jean
 
