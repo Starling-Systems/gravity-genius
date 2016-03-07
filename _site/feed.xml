@@ -6,9 +6,69 @@
 </description>
     <link>http://paul-jean.github.io//gravity-genius//</link>
     <atom:link href="http://paul-jean.github.io//gravity-genius//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 06 Mar 2016 22:01:32 -0500</pubDate>
-    <lastBuildDate>Sun, 06 Mar 2016 22:01:32 -0500</lastBuildDate>
+    <pubDate>Sun, 06 Mar 2016 22:36:02 -0500</pubDate>
+    <lastBuildDate>Sun, 06 Mar 2016 22:36:02 -0500</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>Planet basins of attraction in the background</title>
+        <description>&lt;p&gt;Added the basins of attraction of the planets in the background:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/gravity-genius//assets/20160219-gravity-genius.gif&quot; alt=&quot;gravity genius&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The basins of attraction are represented by coloring the background points
+according to the color of the planet the rocket will be closest to if it started
+from rest at that point.&lt;/p&gt;
+
+&lt;p&gt;The basins of attraction are very complex! With more planets, they get
+&lt;a href=&quot;https://www.google.com/search?q=newton+basin+of+attraction&amp;amp;espv=2&amp;amp;biw=1436&amp;amp;bih=782&amp;amp;source=lnms&amp;amp;tbm=isch&amp;amp;sa=X&amp;amp;ved=0ahUKEwiDwfLC0q3LAhWJWz4KHSJoAdwQ_AUIBygC&quot;&gt;really crazy&lt;/a&gt;.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 19 Feb 2016 00:00:00 -0500</pubDate>
+        <link>http://paul-jean.github.io//gravity-genius//2016/02/19/basins.html</link>
+        <guid isPermaLink="true">http://paul-jean.github.io//gravity-genius//2016/02/19/basins.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Adding a target</title>
+        <description>&lt;p&gt;Added a ‘target’ at the center that stops the rocket, and the ability to add
+planets by clicking on the canvas:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/gravity-genius//assets/20160216-03-gravity-genius.gif&quot; alt=&quot;gravity genius&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 16 Feb 2016 00:00:00 -0500</pubDate>
+        <link>http://paul-jean.github.io//gravity-genius//2016/02/16/target.html</link>
+        <guid isPermaLink="true">http://paul-jean.github.io//gravity-genius//2016/02/16/target.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Showing gravity force vectors</title>
+        <description>&lt;p&gt;Showing the rocket path in bold:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/gravity-genius//assets/20160216-02-gravity-genius.gif&quot; alt=&quot;gravity genius&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 16 Feb 2016 00:00:00 -0500</pubDate>
+        <link>http://paul-jean.github.io//gravity-genius//2016/02/16/rocket-path.html</link>
+        <guid isPermaLink="true">http://paul-jean.github.io//gravity-genius//2016/02/16/rocket-path.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Showing gravity force vectors</title>
+        <description>&lt;p&gt;Showing a force vector on the rocket due to each planet:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/gravity-genius//assets/20160216-gravity-genius.gif&quot; alt=&quot;gravity genius&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 16 Feb 2016 00:00:00 -0500</pubDate>
+        <link>http://paul-jean.github.io//gravity-genius//2016/02/16/force-vectors.html</link>
+        <guid isPermaLink="true">http://paul-jean.github.io//gravity-genius//2016/02/16/force-vectors.html</guid>
+        
+        
+      </item>
     
       <item>
         <title>Gravity Genius is born</title>
