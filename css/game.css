@@ -33,3 +33,7 @@ button {
 
 @media screen and (max-width: 768px) {
 }
+
+nav {
+    text-align: center;
+}
