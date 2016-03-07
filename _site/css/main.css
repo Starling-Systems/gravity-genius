@@ -455,3 +455,15 @@ pre {
     color: #008080; }
   .highlight .il {
     color: #099; }
+
+p > img {
+  border-style: solid;
+  border-width: 1px;
+  border-color: gray; }
+
+.container, body {
+  max-width: 500px;
+  margin: 0 auto; }
+
+.center {
+  margin: 0 auto; }

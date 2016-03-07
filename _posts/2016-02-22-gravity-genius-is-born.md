@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Gravity Genius is born"
+gif:    assets/20160215-gravity-genius.gif
 date:   2016-02-15
 ---
 
