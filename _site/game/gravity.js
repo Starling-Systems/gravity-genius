@@ -315,11 +315,13 @@ function startGame() {
         var y = yCanvas / graphics.canvas.height;
         y = 1.0 - y;
         planetPositions.push([x, y]);
+        /*
         var cachedRocketPos = gameState.rocketPos;
         var cachedHighlightPath = gameState.highlightPath;
         graphics.attractorBasins = attractorBasins(gameState, constants);
         gameState.rocketPos = cachedRocketPos;
         gameState.highlightPath = cachedHighlightPath;
+        */
     });
 
     var resetButton = document.getElementById('reset');
@@ -329,7 +331,7 @@ function startGame() {
         // TODO: using planetPositions as a singleton seems janky
         while (planetPositions.length > 2) planetPositions.pop();
         while (highlightPath.length > 1) highlightPath.pop();
-        graphics.attractorBasins = attractorBasins(gameState, constants);
+        // graphics.attractorBasins = attractorBasins(gameState, constants);
         gameState.rocketPos = [0.75, 0.1];
         gameState.rocketVel = [-1.0, 1.0];
         gameState.highlightPath = [[0.75, 0.1]]; // TODO: clone rocketPos here
@@ -352,8 +354,10 @@ function startGame() {
 
     var gameState = initialGameState;
 
+    /*
     graphics.attractorBasins = attractorBasins(gameState, constants);
     gameState.highlightPath = [initialRocketPos];
+    */
 
     gameState.rocketPos = [0.75, 0.1],
     renderGame(gameState, constants, graphics);
