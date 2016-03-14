@@ -101,10 +101,101 @@ function stepRocket(gameState, constants) {
     return newGameState;
 }
 
-function renderBackground(graphics) {
+function renderBackground(graphics, constants) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
     //renderAttractorBasins(graphics);
+    renderForceVectors(graphics);
+}
+
+function dvAtPoint(ptxy, gameState, constants) {
+    var dvEachPlanet = gameState.planetPositions.map(function(planetPos) {
+        return dvFromPlanet(planetPos, ptxy, constants);
+    });
+    // target has a stronger gravity field:
+    var oldG = constants.G;
+    constants.G = constants.G * constants.targetForceMultiplier;
+    var dvTarget = dvFromPlanet(gameState.targetPosition, gameState.rocketPos, constants);
+    constants.G = oldG;
+    // update the velocity due to the pull of each planet:
+    var dvx = dvy = 0.0;
+    dvEachPlanet.forEach(function(dv) {
+        dvx += dv[0];
+        dvy += dv[1];
+    });
+    // update the velocity from the pull of the target:
+    dvx += dvTarget[0];
+    dvy += dvTarget[1];
+    // update the velocity from the accelerometer
+    /*
+    var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * constants.dt;
+    var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * constants.dt;
+    dvx += dvxAccelerometer;
+    dvy += dvyAccelerometer;
+    */
+    return [dvx, dvy];
+}
+
+function renderForceVectors(graphics) {
+    var vectors = graphics.forceVectors;
+    var numYVectors = vectors.length;
+    var numXVectors = vectors[0].length;
+    var cellRadiusCanvas = graphics.canvasWidth / (2 * 100.0);
+    var x, y, dvNormalized, dvxNormalized, dvyNormalized, vectorRadius;
+    var xCanvas, yCanvas, xEndCanvas, yEndCanvas;
+    graphics.ctx.save();
+    graphics.ctx.globalAlpha = 0.4;
+    graphics.ctx.strokeStyle = '#000000'; // black
+    for (var j = 0; j < numYVectors; j++) {
+        for (var i = 0; i < numXVectors; i++) {
+            dvNormalized = vectors[j][i];
+            dvxNormalized = dvNormalized[0];
+            dvyNormalized = dvNormalized[1];
+            vectorRadius = Math.sqrt(dvxNormalized*dvxNormalized + dvyNormalized*dvyNormalized);
+            x = (i / 100.0);
+            y = (1.0 - (j / 100.0));
+            xCanvas = x * graphics.canvasWidth;
+            yCanvas = y * graphics.canvasHeight;
+            xEndCanvas = xCanvas + dvxNormalized * cellRadiusCanvas;
+            yEndCanvas = yCanvas + dvyNormalized * cellRadiusCanvas;
+            graphics.ctx.beginPath();
+            graphics.ctx.moveTo(xCanvas, yCanvas);
+            graphics.ctx.lineTo(xEndCanvas, yEndCanvas);
+            graphics.ctx.stroke();
+        }
+    }
+    graphics.ctx.restore();
+}
+
+function computeForceVectors(gameState, constants) {
+    var x, y, dvPt;
+    var dvField = [];
+    var maxVecLength = 0.0;
+    // compute dv for each point in the grid
+    for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 100; j++) {
+            if (i === 0) dvField[j] = [];
+            x = (i / 100.0);
+            y = (1.0 - (j / 100.0));
+            dvPt = dvAtPoint([x, y], gameState, constants);
+            dvField[j][i] = dvPt;
+            dvVecLength = Math.sqrt(dvPt[0]*dvPt[0] + dvPt[1]*dvPt[1]);
+            if (dvVecLength > maxVecLength) maxVecLength = dvVecLength;
+        }
+    }
+    // normalize the vectors to the max vector in the field
+    var dvx, dvy, dvxNormalized, dvyNormalized;
+    for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 100; j++) {
+            dvPt = dvField[j][i];
+            dvx = dvPt[0];
+            dvy = dvPt[1];
+            dvxNormalized = dvx / maxVecLength;
+            dvyNormalized = dvy / maxVecLength;
+            dvField[j][i] = [dvxNormalized, dvyNormalized];
+        }
+    }
+    return dvField;
 }
 
 function renderAttractorBasins(graphics) {
@@ -168,7 +259,7 @@ function attractorBasins(gameState, constants) {
 }
 
 function renderGame(gameState, constants, graphics) {
-    renderBackground(graphics);
+    renderBackground(graphics, constants);
     // render debug panel
     if (gameState.debugQ) {
         var yInc = 0.02;
@@ -357,9 +448,10 @@ function startGame() {
     /*
     graphics.attractorBasins = attractorBasins(gameState, constants);
     gameState.highlightPath = [initialRocketPos];
-    */
-
     gameState.rocketPos = [0.75, 0.1],
+    */
+    graphics.forceVectors = computeForceVectors(gameState, constants);
+
     renderGame(gameState, constants, graphics);
 
     function stepGameState() {
