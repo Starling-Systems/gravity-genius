@@ -140,7 +140,7 @@ function renderForceVectors(graphics) {
     var vectors = graphics.forceVectors;
     var numYVectors = vectors.length;
     var numXVectors = vectors[0].length;
-    var cellRadiusCanvas = graphics.canvasWidth / (2 * 100.0);
+    var cellRadiusCanvas = graphics.canvasWidth / (100.0);
     var x, y, dvNormalized, dvxNormalized, dvyNormalized, vectorRadius;
     var xCanvas, yCanvas, xEndCanvas, yEndCanvas;
     graphics.ctx.save();
@@ -153,7 +153,8 @@ function renderForceVectors(graphics) {
             dvyNormalized = dvNormalized[1];
             vectorRadius = Math.sqrt(dvxNormalized*dvxNormalized + dvyNormalized*dvyNormalized);
             x = (i / 100.0);
-            y = (1.0 - (j / 100.0));
+            //y = (1.0 - (j / 100.0));
+            y = j / 100.0;
             xCanvas = x * graphics.canvasWidth;
             yCanvas = y * graphics.canvasHeight;
             xEndCanvas = xCanvas + dvxNormalized * cellRadiusCanvas;
@@ -406,6 +407,7 @@ function startGame() {
         var y = yCanvas / graphics.canvas.height;
         y = 1.0 - y;
         planetPositions.push([x, y]);
+        graphics.forceVectors = computeForceVectors(gameState, constants);
         /*
         var cachedRocketPos = gameState.rocketPos;
         var cachedHighlightPath = gameState.highlightPath;
