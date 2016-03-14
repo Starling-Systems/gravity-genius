@@ -428,6 +428,7 @@ function startGame() {
         gameState.rocketPos = [0.75, 0.1];
         gameState.rocketVel = [-1.0, 1.0];
         gameState.highlightPath = [[0.75, 0.1]]; // TODO: clone rocketPos here
+        graphics.forceVectors = computeForceVectors(gameState, constants);
         renderGame(gameState, constants, graphics);
     });
 
