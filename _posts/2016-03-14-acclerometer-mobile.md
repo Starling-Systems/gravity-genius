@@ -17,12 +17,12 @@ event. The event handler then updates a global (yuck) that holds the
 acceleration due to gravity in the x and y directions:
 
 ```javascript
-    window.addEventListener('devicemotion', function(event) {
-        if (event.accelerationIncludingGravity) {
-            accelerometer[0] = event.accelerationIncludingGravity.x;
-            accelerometer[1] = event.accelerationIncludingGravity.y;
-        }
-    });
+window.addEventListener('devicemotion', function(event) {
+    if (event.accelerationIncludingGravity) {
+        accelerometer[0] = event.accelerationIncludingGravity.x;
+        accelerometer[1] = event.accelerationIncludingGravity.y;
+    }
+});
 ```
 
 The acceleration due to gravity in the x and y directions from the accelerometer
@@ -32,9 +32,9 @@ net velocity change due to the gravitational force from the planets, and the
 final velocity is computed in the x and y directions:
 
 ```javascript
-    // update the velocity from the accelerometer
-    var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * constants.dt;
-    var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * constants.dt;
-    vx += dvxAccelerometer;
-    vy += dvyAccelerometer;
+// update the velocity from the accelerometer
+var dvxAccelerometer = constants.accelerometerFactor * gameState.accelerometer[0] * constants.dt;
+var dvyAccelerometer = constants.accelerometerFactor * gameState.accelerometer[1] * constants.dt;
+vx += dvxAccelerometer;
+vy += dvyAccelerometer;
 ```
