@@ -17,3 +17,4 @@ github_username:  paul-jean
 
 # Build settings
 markdown: kramdown
+highlighter: rouge
