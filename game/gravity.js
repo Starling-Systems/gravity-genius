@@ -105,7 +105,7 @@ function renderBackground(graphics, constants) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
     //renderAttractorBasins(graphics);
-    renderForceVectors(graphics);
+    renderForceVectors(graphics, constants);
 }
 
 function dvAtPoint(ptxy, gameState, constants) {
@@ -136,11 +136,13 @@ function dvAtPoint(ptxy, gameState, constants) {
     return [dvx, dvy];
 }
 
-function renderForceVectors(graphics) {
+function renderForceVectors(graphics, constants) {
     var vectors = graphics.forceVectors;
     var numYVectors = vectors.length;
     var numXVectors = vectors[0].length;
-    var cellRadiusCanvas = graphics.canvasWidth / (100.0);
+    var numCells = constants.numVectorFieldCells;
+    var cellRadiusCanvas = graphics.canvasWidth / (2 * numCells);
+    var vectorLengthFudgeFactor = 2.0;
     var x, y, dvNormalized, dvxNormalized, dvyNormalized, vectorRadius;
     var xCanvas, yCanvas, xEndCanvas, yEndCanvas;
     graphics.ctx.save();
@@ -152,13 +154,13 @@ function renderForceVectors(graphics) {
             dvxNormalized = dvNormalized[0];
             dvyNormalized = dvNormalized[1];
             vectorRadius = Math.sqrt(dvxNormalized*dvxNormalized + dvyNormalized*dvyNormalized);
-            x = (i / 100.0);
+            x = (i / numXVectors);
             //y = (1.0 - (j / 100.0));
-            y = j / 100.0;
+            y = j / numYVectors;
             xCanvas = x * graphics.canvasWidth;
             yCanvas = y * graphics.canvasHeight;
-            xEndCanvas = xCanvas + dvxNormalized * cellRadiusCanvas;
-            yEndCanvas = yCanvas + dvyNormalized * cellRadiusCanvas;
+            xEndCanvas = xCanvas + dvxNormalized * cellRadiusCanvas * vectorLengthFudgeFactor;
+            yEndCanvas = yCanvas + dvyNormalized * cellRadiusCanvas * vectorLengthFudgeFactor;
             graphics.ctx.beginPath();
             graphics.ctx.moveTo(xCanvas, yCanvas);
             graphics.ctx.lineTo(xEndCanvas, yEndCanvas);
@@ -172,12 +174,13 @@ function computeForceVectors(gameState, constants) {
     var x, y, dvPt;
     var dvField = [];
     var maxVecLength = 0.0;
+    var numCells = constants.numVectorFieldCells;
     // compute dv for each point in the grid
-    for (var i = 0; i < 100; i++) {
-        for (var j = 0; j < 100; j++) {
+    for (var i = 0; i < numCells; i++) {
+        for (var j = 0; j < numCells; j++) {
             if (i === 0) dvField[j] = [];
-            x = (i / 100.0);
-            y = (1.0 - (j / 100.0));
+            x = (i / numCells);
+            y = (1.0 - (j / numCells));
             dvPt = dvAtPoint([x, y], gameState, constants);
             dvField[j][i] = dvPt;
             dvVecLength = Math.sqrt(dvPt[0]*dvPt[0] + dvPt[1]*dvPt[1]);
@@ -186,8 +189,8 @@ function computeForceVectors(gameState, constants) {
     }
     // normalize the vectors to the max vector in the field
     var dvx, dvy, dvxNormalized, dvyNormalized;
-    for (var i = 0; i < 100; i++) {
-        for (var j = 0; j < 100; j++) {
+    for (var i = 0; i < numCells; i++) {
+        for (var j = 0; j < numCells; j++) {
             dvPt = dvField[j][i];
             dvx = dvPt[0];
             dvy = dvPt[1];
@@ -361,7 +364,8 @@ function startGame() {
         targetWidth: 0.04,
         accelerometerFactor: 40.0,
         planetWidth: 0.04,
-        highlightPathLength: 20
+        highlightPathLength: 20,
+        numVectorFieldCells: 50
     };
 
     var initialRocketPos = [0.75, 0.1];
