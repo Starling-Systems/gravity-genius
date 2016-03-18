@@ -85,8 +85,8 @@ function stepRocket(gameState, constants) {
     if (y < 0.0) y = y + 1.0;
     */
     // bounce off the walls
-    if (x > 1.0 || x < 0.0) vx = -vx;
-    if (y > 1.0 || y < 0.0) vy = -vy;
+    if (x > 1.0 || x < 0.0) vx = -0.5 * vx;
+    if (y > 1.0 || y < 0.0) vy = -0.5 * vy;
     var newGameState = {
         rocketPos: [x, y], // FIXME: rename to rocketPosition
         rocketVel: [vx, vy], // FIXME: rename to rocketVelocity
