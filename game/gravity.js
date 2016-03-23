@@ -352,6 +352,10 @@ function renderGame(gameState, constants, graphics) {
 function startGame() {
     // set canvas size to window size
     var canvas = document.getElementById('myCanvas');
+    console.log('window.innerWidth = ' + window.innerWidth);
+    console.log('window.innerHeight = ' + window.innerHeight);
+    console.log('canvas.width = ' + canvas.width);
+    console.log('canvas.height = ' + canvas.height);
     canvas.width = window.innerWidth - 20;
     canvas.height = window.innerHeight - 150; // leave room for buttons
     console.log('width = ' + canvas.width);
