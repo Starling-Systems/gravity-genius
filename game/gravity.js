@@ -352,8 +352,10 @@ function renderGame(gameState, constants, graphics) {
 function startGame() {
     // set canvas size to window size
     var canvas = document.getElementById('myCanvas');
-    canvas.width = Math.min(window.innerWidth - 20, 500);
-    canvas.height = Math.min(window.innerHeight - 120, 500); // leave room for buttons
+    canvas.width = window.innerWidth - 20;
+    canvas.height = window.innerHeight - 150; // leave room for buttons
+    console.log('width = ' + canvas.width);
+    console.log('height = ' + canvas.height);
 
     var constants = {
         planetMass: 1.0,
