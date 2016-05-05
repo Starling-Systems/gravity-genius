@@ -303,23 +303,23 @@ function renderGame(gameState, constants, graphics) {
     }
     // render planets
     var planetColors = ['blue', 'green'];
+    var rocketPosX = gameState.rocketPos[0];
+    var rocketPosY = gameState.rocketPos[1];
+    //console.log("x, y = " + x + ", " + y);
+    var minPlanetDistance;
+    var nearestPlanetIndex;
     gameState.planetPositions.forEach(function(planetPos, i) {
         var xPlanet = planetPos[0];
         var yPlanet = planetPos[1];
         var xPlanetCanvas = xPlanet * graphics.canvasWidth;
         var yPlanetCanvas = (1.0 - yPlanet) * graphics.canvasHeight;
-        /*
-        var distx = (x - xPlanet);
-        var disty = (y - yPlanet);
+        var distx = (rocketPosX - xPlanet);
+        var disty = (rocketPosY - yPlanet);
         var r = Math.sqrt(Math.pow(distx, 2) + Math.pow(disty, 2));
-        //console.log(r*r);
-        graphics.ctx.beginPath();
-        graphics.ctx.lineWidth = Math.min(0.1/(r*r), 3.0);
-        graphics.ctx.moveTo(xCanvas, yCanvas);
-        graphics.ctx.lineTo(xCanvas + 0.2*(xPlanetCanvas - xCanvas), yCanvas + 0.2*(yPlanetCanvas - yCanvas));
-        graphics.ctx.stroke();
-        graphics.ctx.closePath();
-        */
+        if (i === 0 || r < minPlanetDistance) {
+            minPlanetDistance = r;
+            nearestPlanetIndex = i;
+        }
         graphics.ctx.lineWidth = 1.0;
         graphics.ctx.beginPath();
         graphics.ctx.fillStyle = planetColors[i];
@@ -336,30 +336,33 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.fillStyle = 'red';
     graphics.ctx.fillRect(xTargetCanvas - targetWidthCanvas/2.0, yTargetCanvas - targetWidthCanvas/2.0, targetWidthCanvas, targetWidthCanvas);
     // draw the rocket
-    var x = gameState.rocketPos[0];
-    var y = gameState.rocketPos[1];
-    //console.log("x, y = " + x + ", " + y);
-    var xCanvas = x * graphics.canvasWidth;
-    var yCanvas = (1.0 - y) * graphics.canvasHeight;
+    var xCanvas = rocketPosX * graphics.canvasWidth;
+    var yCanvas = (1.0 - rocketPosY) * graphics.canvasHeight;
     graphics.ctx.lineWidth = 1.0;
     graphics.ctx.fillStyle = 'black';
     graphics.ctx.beginPath();
     graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
     graphics.ctx.fill();
     graphics.ctx.closePath();
+    // draw line to nearest planet
+    var nearestPlanetXY = gameState.planetPositions[nearestPlanetIndex];
+    var nearestPlanetXCanvas = nearestPlanetXY[0] * graphics.canvasWidth;
+    var nearestPlanetYCanvas = (1.0 - nearestPlanetXY[1]) * graphics.canvasHeight;
+    graphics.ctx.beginPath();
+    graphics.ctx.strokeStyle = 'black';
+    graphics.ctx.setLineDash([5, 15]);
+    graphics.ctx.lineWidth = 1.0; // FIXME: calibrate this
+    graphics.ctx.moveTo(nearestPlanetXCanvas, nearestPlanetYCanvas);
+    graphics.ctx.lineTo(xCanvas, yCanvas);
+    graphics.ctx.stroke();
+    graphics.ctx.closePath();
 }
 
 function startGame() {
     // set canvas size to window size
     var canvas = document.getElementById('myCanvas');
-    console.log('window.innerWidth = ' + window.innerWidth);
-    console.log('window.innerHeight = ' + window.innerHeight);
-    console.log('canvas.width = ' + canvas.width);
-    console.log('canvas.height = ' + canvas.height);
-    canvas.width = window.innerWidth - 20;
-    canvas.height = window.innerHeight - 150; // leave room for buttons
-    console.log('width = ' + canvas.width);
-    console.log('height = ' + canvas.height);
+    canvas.width = document.documentElement.clientWidth - 20;
+    canvas.height = document.documentElement.clientHeight;
 
     var constants = {
         planetMass: 1.0,
