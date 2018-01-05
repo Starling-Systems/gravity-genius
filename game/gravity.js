@@ -2,6 +2,14 @@
     window.addEventListener('load', startGame);
 })();
 
+function xToCanvas(x, graphics) {
+    return x * graphics.canvasWidth;
+}
+
+function yToCanvas(y, graphics) {
+    return (1.0 - y) * graphics.canvasHeight;
+}
+
 function dvFromPlanet(planetPos, rocketPos, constants) {
     var distx = (rocketPos[0] - planetPos[0]);
     var disty = (rocketPos[1] - planetPos[1]);
@@ -77,26 +85,62 @@ function stepRocket(gameState, constants) {
     if (gameState.highlightPath.length > constants.highlightPathLength) {
         gameState.highlightPath.shift();
     }
-    // use periodic boundaries
-    /*
-    if (x > 1.0) x = x - 1.0;
-    if (x < 0.0) x = x + 1.0;
-    if (y > 1.0) y = y - 1.0;
-    if (y < 0.0) y = y + 1.0;
-    */
+    // detect an orbit
+    gameState.orbit = {};
+    gameState.orbit.orbitStartIndex = null;
+    gameState.orbit.orbitStartPoint = null;
+    if (!gameState.renderingOrbit && gameState.highlightPath.length > 4) {
+        var lastIndex = gameState.highlightPath.length - 1;
+        var lastPoint = gameState.highlightPath[lastIndex];
+        // find the closest point in the highlight path to the last one:
+        var secondLastPointIndex = gameState.highlightPath.length - 2;
+        var secondLastPoint = gameState.highlightPath[secondLastPointIndex];
+        var leastDistance = math.distance(lastPoint, secondLastPoint);
+        var closestPointIndex = null;
+        // find the smallest distance of the end of the path to an internal point
+        // but don't consider points at the tail end of the path, because a
+        // wall bounce brings the end of the path close to itself
+        gameState.highlightPath.slice(0, -20).forEach(function(innerPoint, innerPointIndex) {
+            var distInnerLast = math.distance(lastPoint, innerPoint);
+            if (distInnerLast < leastDistance) {
+                leastDistance = distInnerLast;
+                closestPointIndex = innerPointIndex;
+            }
+        });
+        if (
+            closestPointIndex
+            && closestPointIndex != secondLastPointIndex
+            // a wall bounce brings the rocket close to the highlight path:
+            // && closestPointIndex < constants.highlightPathLength/4.0
+        ) {
+            debugger;
+            // the highlight path is closing into a loop
+            var closestPoint = gameState.highlightPath[closestPointIndex];
+            var closestPointNeighborIndex = closestPointIndex + 1;
+            if (closestPointNeighborIndex <= lastIndex) {
+                var closestPointNeighbor = gameState.highlightPath[closestPointNeighborIndex];
+                var intersection = math.intersect(lastPoint, secondLastPoint, closestPoint, closestPointNeighbor);
+                if (intersection) {
+                    // detected an orbit
+                    gameState.orbitCount++;
+                    gameState.orbit.orbitStartPoint = intersection;
+                    gameState.orbit.orbitStartIndex = closestPointIndex;
+                    gameState.orbit.orbitFramesLeft = constants.orbitAnimationFrames;
+                    gameState.orbit.path = JSON.parse(JSON.stringify(gameState.highlightPath));
+                    gameState.renderingOrbit = {};
+                    Object.assign(gameState.renderingOrbit, gameState.orbit);
+                }
+            }
+        }
+    }
     // bounce off the walls
     if (x > 1.0 || x < 0.0) vx = -0.5 * vx;
     if (y > 1.0 || y < 0.0) vy = -0.5 * vy;
-    var newGameState = {
-        rocketPos: [x, y], // FIXME: rename to rocketPosition
-        rocketVel: [vx, vy], // FIXME: rename to rocketVelocity
-        planetPositions: gameState.planetPositions, // approximately no movement in planets
-        targetPosition: gameState.targetPosition,
-        accelerometer: gameState.accelerometer,
-        highlightPath: gameState.highlightPath,
-        debugQ: gameState.debugQ,
-        runningQ: gameState.runningQ
-    };
+    // deep clone the existing game state:
+    // TODO: (why do I need to return a clone of the game state again?)
+    var newGameState = JSON.parse(JSON.stringify(gameState));
+    newGameState.rocketPos = [x, y]; // TODO: rename to rocketPosition
+    newGameState.rocketVel = [vx, vy]; // TODO: rename to rocketVelocity
 
     return newGameState;
 }
@@ -266,6 +310,8 @@ function renderGame(gameState, constants, graphics) {
     renderBackground(graphics, constants);
     // render debug panel
     if (gameState.debugQ) {
+        graphics.ctx.fillStyle = 'black';
+        graphics.ctx.strokeStyle = 'black';
         var yInc = 0.02;
         var yIncCanvas = 0.02 * graphics.canvasHeight;
         var textPosX = 0.8;
@@ -280,13 +326,15 @@ function renderGame(gameState, constants, graphics) {
         var vyRounded = Math.round(gameState.rocketVel[1] * 100) / 100;
         graphics.ctx.fillText('vx: ' + vxRounded, textPosXCanvas, textPosYCanvas + 2*yIncCanvas);
         graphics.ctx.fillText('vy: ' + vyRounded, textPosXCanvas, textPosYCanvas + 3*yIncCanvas);
+        graphics.ctx.fillText('orbits: ' + gameState.orbitCount, textPosXCanvas, textPosYCanvas + 4*yIncCanvas);
+        graphics.ctx.fillText('orbit frames: ' + gameState.renderingOrbit.orbitFramesLeft, textPosXCanvas, textPosYCanvas + 5*yIncCanvas);
     }
     // render rocket path
     if (gameState.runningQ) {
-        graphics.ctx.beginPath();
         var numPathPts = gameState.highlightPath.length;
         var ptXCanvas = gameState.highlightPath[numPathPts - 1][0] * graphics.canvasWidth;
         var ptYCanvas = (1.0 - gameState.highlightPath[numPathPts - 1][1]) * graphics.canvasHeight;
+        graphics.ctx.beginPath();
         graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
         var pathLength = Math.min(numPathPts, constants.highlightPathLength);
         var indexFromEnd;
@@ -297,7 +345,7 @@ function renderGame(gameState, constants, graphics) {
             graphics.ctx.lineTo(ptXCanvas, ptYCanvas);
             graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
         }
-        graphics.ctx.closePath();
+        //graphics.ctx.closePath();
         graphics.ctx.strokeStyle = '#d3d3d3';
         graphics.ctx.stroke();
     }
@@ -305,7 +353,6 @@ function renderGame(gameState, constants, graphics) {
     var planetColors = ['blue', 'green'];
     var rocketPosX = gameState.rocketPos[0];
     var rocketPosY = gameState.rocketPos[1];
-    //console.log("x, y = " + x + ", " + y);
     var minPlanetDistance;
     var nearestPlanetIndex;
     gameState.planetPositions.forEach(function(planetPos, i) {
@@ -324,8 +371,8 @@ function renderGame(gameState, constants, graphics) {
         graphics.ctx.beginPath();
         graphics.ctx.fillStyle = planetColors[i];
         graphics.ctx.arc(xPlanetCanvas, yPlanetCanvas, constants.planetWidth * graphics.canvasWidth, 0, 2*Math.PI, false);
-        graphics.ctx.fill();
         graphics.ctx.closePath();
+        graphics.ctx.fill();
     });
     // draw the target
     var xTarget = gameState.targetPosition[0];
@@ -342,8 +389,8 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.fillStyle = 'black';
     graphics.ctx.beginPath();
     graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2*Math.PI, false);
-    graphics.ctx.fill();
     graphics.ctx.closePath();
+    graphics.ctx.fill();
     // draw line to nearest planet
     var nearestPlanetXY = gameState.planetPositions[nearestPlanetIndex];
     var nearestPlanetXCanvas = nearestPlanetXY[0] * graphics.canvasWidth;
@@ -356,13 +403,37 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.lineTo(xCanvas, yCanvas);
     graphics.ctx.stroke();
     graphics.ctx.closePath();
+    // render the orbit
+    if (gameState.renderingOrbit) {
+        var startIndex = gameState.renderingOrbit.orbitStartIndex;
+        var startPoint = gameState.renderingOrbit.path[startIndex];
+        graphics.ctx.lineWidth = 1.0;
+        graphics.ctx.strokeStyle = 'black';
+        graphics.ctx.fillStyle = 'yellow';
+        graphics.ctx.beginPath();
+        graphics.ctx.moveTo(xToCanvas(startPoint[0], graphics), yToCanvas(startPoint[1], graphics));
+        gameState.renderingOrbit.path.slice(startIndex).forEach(function(orbitPoint) {
+            graphics.ctx.lineTo(xToCanvas(orbitPoint[0], graphics), yToCanvas(orbitPoint[1], graphics));
+            //graphics.ctx.stroke();
+            //graphics.ctx.moveTo(orbitPoint[0], orbitPoint[1]);
+        });
+        //graphics.ctx.closePath();
+        graphics.ctx.fill();
+        gameState.renderingOrbit.orbitFramesLeft--;
+        if (gameState.renderingOrbit.orbitFramesLeft === 0) {
+            //console.log(gameState.renderingOrbit);
+            //console.log(gameState.highlightPath);
+            gameState.renderingOrbit = null;
+        }
+        graphics.ctx.fillStyle = null;
+    }
 }
 
 function startGame() {
     // set canvas size to window size
     var canvas = document.getElementById('myCanvas');
-    canvas.width = document.documentElement.clientWidth - 20;
-    canvas.height = document.documentElement.clientHeight;
+    canvas.width = Math.min(document.documentElement.clientWidth - 20, 400);
+    canvas.height = Math.min(document.documentElement.clientHeight, 500);
 
     var constants = {
         planetMass: 1.0,
@@ -373,8 +444,9 @@ function startGame() {
         targetWidth: 0.04,
         accelerometerFactor: 40.0,
         planetWidth: 0.04,
-        highlightPathLength: 20,
-        numVectorFieldCells: 50
+        highlightPathLength: 100,
+        numVectorFieldCells: 50,
+        orbitAnimationFrames: 100
     };
 
     var initialRocketPos = [0.75, 0.1];
@@ -393,6 +465,7 @@ function startGame() {
         targetPosition: targetPosition,
         accelerometer: accelerometer,
         highlightPath: highlightPath,
+        orbitCount: 0,
         debugQ: debugQ,
         runningQ: runningQ
     };
@@ -432,17 +505,10 @@ function startGame() {
 
     var resetButton = document.getElementById('reset');
     resetButton.addEventListener('click', function() {
-        gameState.runningQ = false;
-        //gameState = initialGameState;
-        // TODO: using planetPositions as a singleton seems janky
-        while (planetPositions.length > 2) planetPositions.pop();
-        while (highlightPath.length > 1) highlightPath.pop();
-        // graphics.attractorBasins = attractorBasins(gameState, constants);
-        gameState.rocketPos = [0.75, 0.1];
-        gameState.rocketVel = [-1.0, 1.0];
-        gameState.highlightPath = [[0.75, 0.1]]; // TODO: clone rocketPos here
-        graphics.forceVectors = computeForceVectors(gameState, constants);
-        renderGame(gameState, constants, graphics);
+        var newGameState = JSON.parse(JSON.stringify(initialGameState));
+        newGameState.runningQ = false;
+        graphics.forceVectors = computeForceVectors(newGameState, constants);
+        renderGame(newGameState, constants, graphics);
     });
 
     var debugCheckbox = document.getElementById('debug');
