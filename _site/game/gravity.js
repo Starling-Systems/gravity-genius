@@ -445,24 +445,15 @@ function startGame() {
         orbitAnimationFrames: 100 // number of frames an orbit is shown for
     };
 
-    var initialRocketPos = [0.75, 0.1];
-    var initialRocketVel = [-1.0, 1.0];
-    var planetPositions = [[0.25, 0.25], [0.75, 0.75]];
-    var targetPosition = [0.5, 0.5];
-    var accelerometer = [0.0, 0.0];
-    var highlightPath = [initialRocketPos];
-    var debugQ = false;
-    var runningQ = false;
-
     var initialGameState = {
-        rocketPos: initialRocketPos,
-        rocketVel: initialRocketVel,
-        planetPositions: planetPositions,
-        targetPosition: targetPosition,
-        accelerometer: accelerometer,
-        highlightPath: highlightPath,
+        rocketPos: [0.75, 0.1],
+        rocketVel: [-1.0, 1.0],
+        planetPositions: [[0.25, 0.25], [0.75, 0.75]],
+        targetPosition: [0.5, 0.5],
+        accelerometer: [0.0, 0.0],
+        highlightPath: [[0.75, 0.1]],
         orbitCount: 0,
-        debugQ: debugQ,
+        debugQ: false,
         runningQ: false
     };
 
@@ -521,8 +512,8 @@ function startGame() {
 
     window.addEventListener('devicemotion', function(event) {
         if (event.accelerationIncludingGravity) {
-            accelerometer[0] = event.accelerationIncludingGravity.x;
-            accelerometer[1] = event.accelerationIncludingGravity.y;
+            gameState.accelerometer[0] = event.accelerationIncludingGravity.x;
+            gameState.accelerometer[1] = event.accelerationIncludingGravity.y;
         }
     });
 
