@@ -113,7 +113,6 @@ function stepRocket(gameState, constants) {
             // a wall bounce brings the rocket close to the highlight path:
             // && closestPointIndex < constants.highlightPathLength/4.0
         ) {
-            debugger;
             // the highlight path is closing into a loop
             var closestPoint = gameState.highlightPath[closestPointIndex];
             var closestPointNeighborIndex = closestPointIndex + 1;
@@ -327,28 +326,28 @@ function renderGame(gameState, constants, graphics) {
         graphics.ctx.fillText('vx: ' + vxRounded, textPosXCanvas, textPosYCanvas + 2*yIncCanvas);
         graphics.ctx.fillText('vy: ' + vyRounded, textPosXCanvas, textPosYCanvas + 3*yIncCanvas);
         graphics.ctx.fillText('orbits: ' + gameState.orbitCount, textPosXCanvas, textPosYCanvas + 4*yIncCanvas);
-        graphics.ctx.fillText('orbit frames: ' + gameState.renderingOrbit.orbitFramesLeft, textPosXCanvas, textPosYCanvas + 5*yIncCanvas);
+        if (gameState.renderingOrbit && gameState.renderingOrbit.orbitFramesLeft) {
+            graphics.ctx.fillText('orbit frames: ' + gameState.renderingOrbit.orbitFramesLeft, textPosXCanvas, textPosYCanvas + 5*yIncCanvas);
+        }
     }
     // render rocket path
-    if (gameState.runningQ) {
-        var numPathPts = gameState.highlightPath.length;
-        var ptXCanvas = gameState.highlightPath[numPathPts - 1][0] * graphics.canvasWidth;
-        var ptYCanvas = (1.0 - gameState.highlightPath[numPathPts - 1][1]) * graphics.canvasHeight;
-        graphics.ctx.beginPath();
+    var numPathPts = gameState.highlightPath.length;
+    var ptXCanvas = gameState.highlightPath[numPathPts - 1][0] * graphics.canvasWidth;
+    var ptYCanvas = (1.0 - gameState.highlightPath[numPathPts - 1][1]) * graphics.canvasHeight;
+    graphics.ctx.beginPath();
+    graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
+    var pathLength = Math.min(numPathPts, constants.highlightPathLength);
+    var indexFromEnd;
+    for (var i = 0; i < pathLength; i++) {
+        indexFromEnd = numPathPts - i - 1;
+        ptXCanvas = gameState.highlightPath[indexFromEnd][0] * graphics.canvasWidth;
+        ptYCanvas = (1.0 - gameState.highlightPath[indexFromEnd][1]) * graphics.canvasHeight;
+        graphics.ctx.lineTo(ptXCanvas, ptYCanvas);
         graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
-        var pathLength = Math.min(numPathPts, constants.highlightPathLength);
-        var indexFromEnd;
-        for (var i = 0; i < pathLength; i++) {
-            indexFromEnd = numPathPts - i - 1;
-            ptXCanvas = gameState.highlightPath[indexFromEnd][0] * graphics.canvasWidth;
-            ptYCanvas = (1.0 - gameState.highlightPath[indexFromEnd][1]) * graphics.canvasHeight;
-            graphics.ctx.lineTo(ptXCanvas, ptYCanvas);
-            graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
-        }
-        //graphics.ctx.closePath();
-        graphics.ctx.strokeStyle = '#d3d3d3';
-        graphics.ctx.stroke();
     }
+    //graphics.ctx.closePath();
+    graphics.ctx.strokeStyle = '#d3d3d3';
+    graphics.ctx.stroke();
     // render planets
     var planetColors = ['blue', 'green'];
     var rocketPosX = gameState.rocketPos[0];
@@ -398,7 +397,7 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.beginPath();
     graphics.ctx.strokeStyle = 'black';
     graphics.ctx.setLineDash([5, 15]);
-    graphics.ctx.lineWidth = 1.0; // FIXME: calibrate this
+    graphics.ctx.lineWidth = 1.0; // TODO: calibrate this
     graphics.ctx.moveTo(nearestPlanetXCanvas, nearestPlanetYCanvas);
     graphics.ctx.lineTo(xCanvas, yCanvas);
     graphics.ctx.stroke();
@@ -410,22 +409,19 @@ function renderGame(gameState, constants, graphics) {
         graphics.ctx.lineWidth = 1.0;
         graphics.ctx.strokeStyle = 'black';
         graphics.ctx.fillStyle = 'yellow';
+        graphics.ctx.globalAlpha = 0.5;
         graphics.ctx.beginPath();
         graphics.ctx.moveTo(xToCanvas(startPoint[0], graphics), yToCanvas(startPoint[1], graphics));
         gameState.renderingOrbit.path.slice(startIndex).forEach(function(orbitPoint) {
             graphics.ctx.lineTo(xToCanvas(orbitPoint[0], graphics), yToCanvas(orbitPoint[1], graphics));
-            //graphics.ctx.stroke();
-            //graphics.ctx.moveTo(orbitPoint[0], orbitPoint[1]);
         });
-        //graphics.ctx.closePath();
         graphics.ctx.fill();
         gameState.renderingOrbit.orbitFramesLeft--;
         if (gameState.renderingOrbit.orbitFramesLeft === 0) {
-            //console.log(gameState.renderingOrbit);
-            //console.log(gameState.highlightPath);
             gameState.renderingOrbit = null;
         }
         graphics.ctx.fillStyle = null;
+        graphics.ctx.globalAlpha = 1.0;
     }
 }
 
@@ -446,7 +442,7 @@ function startGame() {
         planetWidth: 0.04,
         highlightPathLength: 100,
         numVectorFieldCells: 50,
-        orbitAnimationFrames: 100
+        orbitAnimationFrames: 100 // number of frames an orbit is shown for
     };
 
     var initialRocketPos = [0.75, 0.1];
@@ -467,7 +463,7 @@ function startGame() {
         highlightPath: highlightPath,
         orbitCount: 0,
         debugQ: debugQ,
-        runningQ: runningQ
+        runningQ: false
     };
 
     var startButton = document.getElementById('start');
@@ -478,6 +474,7 @@ function startGame() {
     var pauseButton = document.getElementById('pause');
     pauseButton.addEventListener('click', function() {
         gameState.runningQ = false;
+        renderGame(gameState, constants, graphics);
     });
 
     var graphics = {};
@@ -492,7 +489,7 @@ function startGame() {
         var x = xCanvas / graphics.canvas.width;
         var y = yCanvas / graphics.canvas.height;
         y = 1.0 - y;
-        planetPositions.push([x, y]);
+        gameState.planetPositions.push([x, y]);
         graphics.forceVectors = computeForceVectors(gameState, constants);
         /*
         var cachedRocketPos = gameState.rocketPos;
@@ -501,20 +498,24 @@ function startGame() {
         gameState.rocketPos = cachedRocketPos;
         gameState.highlightPath = cachedHighlightPath;
         */
-    });
-
-    var resetButton = document.getElementById('reset');
-    resetButton.addEventListener('click', function() {
-        var newGameState = JSON.parse(JSON.stringify(initialGameState));
-        newGameState.runningQ = false;
-        graphics.forceVectors = computeForceVectors(newGameState, constants);
-        renderGame(newGameState, constants, graphics);
+        renderGame(gameState, constants, graphics);
     });
 
     var debugCheckbox = document.getElementById('debug');
     debugCheckbox.addEventListener('click', function(e) {
         if (e.target.checked) gameState.debugQ = true;
         else gameState.debugQ = false;
+        renderGame(gameState, constants, graphics);
+    });
+
+    var resetButton = document.getElementById('reset');
+    resetButton.addEventListener('click', function() {
+        var debugQ = gameState.debugQ;
+        //gameState = JSON.parse(JSON.stringify(initialGameState));
+        gameState = initialGameState;
+        gameState.runningQ = false;
+        gameState.debugQ = debugQ;
+        graphics.forceVectors = computeForceVectors(gameState, constants);
         renderGame(gameState, constants, graphics);
     });
 
