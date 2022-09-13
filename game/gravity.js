@@ -36,6 +36,40 @@ function dvFromPlanet(planetPos, rocketPos, constants) {
     return [dvx, dvy];
 }
 
+function attractorBasins(gameState, constants) {
+    // compute planet attractor basins
+    // cache the current position and velocity vectors
+    var pos = gameState.rocketPos;
+    var vel = gameState.rocketVel;
+    var attractorBasins = [];
+    var basinComputeSteps;
+    for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 100; j++) {
+            if (i === 0) attractorBasins[j] = [];
+            // TODO: use symmetries
+            gameState.rocketPos = [i/100.0, j/100.0];
+            gameState.rocketVel = [0.0, 0.0];
+            basinComputeSteps = 100;
+            while (basinComputeSteps-- > 0) gameState = stepRocket(gameState, constants);
+            var p1Dist = Math.sqrt(
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[0][0]), 2) +
+                Math.pow((gameState.rocketPos[1] - gameState.planetPositions[0][1]), 2));
+            var p2Dist = Math.sqrt(
+                Math.pow((gameState.rocketPos[0] - gameState.planetPositions[1][0]), 2) +
+                Math.pow((gameState.rocketPos[1] - gameState.planetPositions[1][1]), 2));
+            if (p1Dist >= p2Dist) {
+                attractorBasins[j][i] = 0;
+            } else {
+                attractorBasins[j][i] = 1;
+            }
+        }
+    }
+    // reinstate the position and velocity
+    gameState.rocketPos = pos;
+    gameState.rocketVel = vel;
+    return attractorBasins;
+}
+
 function renderAttractorBasins(graphics) {
     // render the basins of attraction of the planets:
     graphics.ctx.save();
@@ -508,13 +542,11 @@ function startGame() {
         y = 1.0 - y;
         gameState.planetPositions.push([x, y]);
         graphics.forceVectors = computeForceVectors(gameState, constants);
-        /*
         var cachedRocketPos = gameState.rocketPos;
         var cachedHighlightPath = gameState.highlightPath;
         graphics.attractorBasins = attractorBasins(gameState, constants);
         gameState.rocketPos = cachedRocketPos;
         gameState.highlightPath = cachedHighlightPath;
-        */
         renderGame(gameState, constants, graphics);
     });
 
