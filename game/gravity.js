@@ -577,11 +577,9 @@ function startGame() {
 
     var gameState = initialGameState;
 
-    /*
     graphics.attractorBasins = attractorBasins(gameState, constants);
     gameState.highlightPath = [initialRocketPos];
     gameState.rocketPos = [0.75, 0.1],
-    */
     graphics.forceVectors = computeForceVectors(gameState, constants);
 
     renderGame(gameState, constants, graphics);
