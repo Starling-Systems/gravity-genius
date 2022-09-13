@@ -349,7 +349,7 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.strokeStyle = '#d3d3d3';
     graphics.ctx.stroke();
     // render planets
-    var planetColors = ['blue', 'green'];
+    var planetColors = ['blue', 'green', 'purple', 'yellow', 'orange', 'pink'];
     var rocketPosX = gameState.rocketPos[0];
     var rocketPosY = gameState.rocketPos[1];
     var minPlanetDistance;
