@@ -36,6 +36,32 @@ function dvFromPlanet(planetPos, rocketPos, constants) {
     return [dvx, dvy];
 }
 
+function renderAttractorBasins(graphics) {
+    // render the basins of attraction of the planets:
+    graphics.ctx.save();
+    graphics.ctx.globalAlpha = 0.4;
+    var fill, xCanvas, yCanvas;
+    var cellWidthCanvas = graphics.canvasWidth / 100.0;
+    var cellHeightCanvas = graphics.canvasHeight / 100.0;
+    var cellOffsetX = 0;
+    var cellOffsetY = cellHeightCanvas;
+    for (var i = 0; i < 100; i++)
+        for (var j = 0; j < 100; j++) {
+            if (graphics.attractorBasins[j][i] === 0) {
+                fill = '#008000'; // green
+            } else {
+                fill = '#0000ff'; // blue
+            }
+            graphics.ctx.fillStyle = fill;
+            xCanvas = (i / 100.0) * graphics.canvasWidth;
+            yCanvas = (1.0 - (j / 100.0)) * graphics.canvasHeight;
+            graphics.ctx.beginPath();
+            graphics.ctx.fillRect(xCanvas - cellOffsetX, yCanvas - cellOffsetY, cellWidthCanvas, cellHeightCanvas);
+            graphics.ctx.closePath();
+        }
+    graphics.ctx.restore();
+}
+
 function stepRocket(gameState, constants) {
     var dvEachPlanet = gameState.planetPositions.map(function(planetPos) {
         return dvFromPlanet(planetPos, gameState.rocketPos, constants);
@@ -147,7 +173,7 @@ function stepRocket(gameState, constants) {
 function renderBackground(graphics, constants) {
     // clear the canvas for the next draw:
     graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
-    //renderAttractorBasins(graphics);
+    renderAttractorBasins(graphics);
     renderForceVectors(graphics, constants);
 }
 
