@@ -1,0 +1,6 @@
+httpserver
+Flask
+requests
+psycopg2-binary
+flask_script
+dotenv
