@@ -668,6 +668,16 @@ function startGame() {
   });
 
   var gameState = initialGameState;
+  var initialRocketPos = [0.75, 0.1];
+  var initialRocketVel = [-1.0, 1.0];
+  var planetPositions = [
+    [0.25, 0.25],
+    [0.75, 0.75],
+  ];
+  var targetPosition = [0.5, 0.5];
+  var accelerometer = [0.0, 0.0];
+  var highlightPath = [initialRocketPos];
+  var debugQ = false;
 
   graphics.attractorBasins = attractorBasins(gameState, constants);
   gameState.highlightPath = [initialRocketPos];
