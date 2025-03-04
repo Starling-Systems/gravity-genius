@@ -1,4 +1,5 @@
 (function () {
+  console.log("load");
   window.addEventListener("load", startGame);
 })();
 
@@ -237,8 +238,8 @@ function stepRocket(gameState, constants) {
 function renderBackground(graphics, constants) {
   // clear the canvas for the next draw:
   graphics.ctx.clearRect(0, 0, graphics.canvasWidth, graphics.canvasHeight);
-  renderAttractorBasins(graphics);
-  renderForceVectors(graphics, constants);
+  //renderAttractorBasins(graphics);
+  //renderForceVectors(graphics, constants);
 }
 
 function dvAtPoint(ptxy, gameState, constants) {
@@ -341,74 +342,6 @@ function computeForceVectors(gameState, constants) {
     }
   }
   return dvField;
-}
-
-function renderAttractorBasins(graphics) {
-  // render the basins of attraction of the planets:
-  graphics.ctx.save();
-  graphics.ctx.globalAlpha = 0.4;
-  var fill, xCanvas, yCanvas;
-  var cellWidthCanvas = graphics.canvasWidth / 100.0;
-  var cellHeightCanvas = graphics.canvasHeight / 100.0;
-  var cellOffsetX = 0;
-  var cellOffsetY = cellHeightCanvas;
-  for (var i = 0; i < 100; i++)
-    for (var j = 0; j < 100; j++) {
-      if (graphics.attractorBasins[j][i] === 0) {
-        fill = "#008000"; // green
-      } else {
-        fill = "#0000ff"; // blue
-      }
-      graphics.ctx.fillStyle = fill;
-      xCanvas = (i / 100.0) * graphics.canvasWidth;
-      yCanvas = (1.0 - j / 100.0) * graphics.canvasHeight;
-      graphics.ctx.beginPath();
-      graphics.ctx.fillRect(
-        xCanvas - cellOffsetX,
-        yCanvas - cellOffsetY,
-        cellWidthCanvas,
-        cellHeightCanvas
-      );
-      graphics.ctx.closePath();
-    }
-  graphics.ctx.restore();
-}
-
-function attractorBasins(gameState, constants) {
-  // compute planet attractor basins
-  // cache the current position and velocity vectors
-  var pos = gameState.rocketPos;
-  var vel = gameState.rocketVel;
-  var attractorBasins = [];
-  var basinComputeSteps;
-  for (var i = 0; i < 100; i++) {
-    for (var j = 0; j < 100; j++) {
-      if (i === 0) attractorBasins[j] = [];
-      // TODO: use symmetries
-      gameState.rocketPos = [i / 100.0, j / 100.0];
-      gameState.rocketVel = [0.0, 0.0];
-      basinComputeSteps = 100;
-      while (basinComputeSteps-- > 0)
-        gameState = stepRocket(gameState, constants);
-      var p1Dist = Math.sqrt(
-        Math.pow(gameState.rocketPos[0] - gameState.planetPositions[0][0], 2) +
-          Math.pow(gameState.rocketPos[1] - gameState.planetPositions[0][1], 2)
-      );
-      var p2Dist = Math.sqrt(
-        Math.pow(gameState.rocketPos[0] - gameState.planetPositions[1][0], 2) +
-          Math.pow(gameState.rocketPos[1] - gameState.planetPositions[1][1], 2)
-      );
-      if (p1Dist >= p2Dist) {
-        attractorBasins[j][i] = 0;
-      } else {
-        attractorBasins[j][i] = 1;
-      }
-    }
-  }
-  // reinstate the position and velocity
-  gameState.rocketPos = pos;
-  gameState.rocketVel = vel;
-  return attractorBasins;
 }
 
 function renderGame(gameState, constants, graphics) {
@@ -575,6 +508,7 @@ function renderGame(gameState, constants, graphics) {
 }
 
 function startGame() {
+  console.log("start");
   // set canvas size to window size
   var canvas = document.getElementById("myCanvas");
   canvas.width = Math.min(document.documentElement.clientWidth - 20, 400);
@@ -679,7 +613,7 @@ function startGame() {
   var highlightPath = [initialRocketPos];
   var debugQ = false;
 
-  graphics.attractorBasins = attractorBasins(gameState, constants);
+  //graphics.attractorBasins = attractorBasins(gameState, constants);
   gameState.highlightPath = [initialRocketPos];
   (gameState.rocketPos = [0.75, 0.1]),
     (graphics.forceVectors = computeForceVectors(gameState, constants));
