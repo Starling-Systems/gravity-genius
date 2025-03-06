@@ -223,6 +223,10 @@ function stepRocket(gameState, constants) {
       }
     }
   }
+
+  // increment the run time
+  gameState.runTime += constants.dt;
+
   // bounce off the walls
   if (x > 1.0 || x < 0.0) vx = -0.5 * vx;
   if (y > 1.0 || y < 0.0) vy = -0.5 * vy;
@@ -275,7 +279,7 @@ function dvAtPoint(ptxy, gameState, constants) {
 }
 
 function renderForceVectors(graphics, constants) {
-  var vectors = graphics.forceVectors;
+  //var vectors = graphics.forceVectors;
   var numYVectors = vectors.length;
   var numXVectors = vectors[0].length;
   var numCells = constants.numVectorFieldCells;
@@ -347,17 +351,18 @@ function computeForceVectors(gameState, constants) {
 function renderGame(gameState, constants, graphics) {
   renderBackground(graphics, constants);
   // render debug panel
+  var yInc = 0.02;
+  var yIncCanvas = 0.02 * graphics.canvasHeight;
+  var textPosX = 0.8;
+  var textPosY = 0.9;
+  var textPosXCanvas = textPosX * graphics.canvasWidth;
+  var textPosYCanvas = (1.0 - textPosY) * graphics.canvasHeight;
+  var xRounded = Math.round(gameState.rocketPos[0] * 100) / 100;
+  var yRounded = Math.round(gameState.rocketPos[1] * 100) / 100;
   if (gameState.debugQ) {
+    graphics.ctx.font = `10px Verdana`;
     graphics.ctx.fillStyle = "black";
     graphics.ctx.strokeStyle = "black";
-    var yInc = 0.02;
-    var yIncCanvas = 0.02 * graphics.canvasHeight;
-    var textPosX = 0.8;
-    var textPosY = 0.9;
-    var textPosXCanvas = textPosX * graphics.canvasWidth;
-    var textPosYCanvas = (1.0 - textPosY) * graphics.canvasHeight;
-    var xRounded = Math.round(gameState.rocketPos[0] * 100) / 100;
-    var yRounded = Math.round(gameState.rocketPos[1] * 100) / 100;
     graphics.ctx.fillText("x: " + xRounded, textPosXCanvas, textPosYCanvas);
     graphics.ctx.fillText(
       "y: " + yRounded,
@@ -381,14 +386,20 @@ function renderGame(gameState, constants, graphics) {
       textPosXCanvas,
       textPosYCanvas + 4 * yIncCanvas
     );
-    if (gameState.renderingOrbit && gameState.renderingOrbit.orbitFramesLeft) {
-      graphics.ctx.fillText(
-        "orbit frames: " + gameState.renderingOrbit.orbitFramesLeft,
-        textPosXCanvas,
-        textPosYCanvas + 5 * yIncCanvas
-      );
-    }
+    graphics.ctx.fillText(
+      "time: " + Math.round(10.0 * gameState.runTime),
+      textPosXCanvas,
+      textPosYCanvas + 5 * yIncCanvas
+    );
   }
+  // render run time
+  graphics.ctx.font = `18px Verdana`;
+  graphics.ctx.fillStyle = "black";
+  graphics.ctx.fillText(
+    "time: " + Math.round(10.0 * gameState.runTime),
+    10,
+    textPosYCanvas + yIncCanvas
+  );
   // render rocket path
   var numPathPts = gameState.highlightPath.length;
   var ptXCanvas =
@@ -407,7 +418,7 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.lineTo(ptXCanvas, ptYCanvas);
     graphics.ctx.moveTo(ptXCanvas, ptYCanvas);
   }
-  //graphics.ctx.closePath();
+  graphics.ctx.closePath();
   graphics.ctx.strokeStyle = "#d3d3d3";
   graphics.ctx.stroke();
   // render planets
@@ -541,11 +552,14 @@ function startGame() {
     orbitCount: 0,
     debugQ: false,
     runningQ: false,
+    runTime: 0,
   };
 
   var startButton = document.getElementById("start");
   startButton.addEventListener("click", function () {
+    console.log("start click");
     gameState.runningQ = true;
+    gameState.runTime = 0;
     stepGameState();
   });
   var pauseButton = document.getElementById("pause");
@@ -561,16 +575,17 @@ function startGame() {
   graphics.ctx = graphics.canvas.getContext("2d");
 
   graphics.canvas.addEventListener("click", function (event) {
+    console.log("click");
     var xCanvas = event.pageX - graphics.canvas.offsetLeft;
     var yCanvas = event.pageY - graphics.canvas.offsetTop;
     var x = xCanvas / graphics.canvas.width;
     var y = yCanvas / graphics.canvas.height;
     y = 1.0 - y;
     gameState.planetPositions.push([x, y]);
-    graphics.forceVectors = computeForceVectors(gameState, constants);
+    //graphics.forceVectors = computeForceVectors(gameState, constants);
     var cachedRocketPos = gameState.rocketPos;
     var cachedHighlightPath = gameState.highlightPath;
-    graphics.attractorBasins = attractorBasins(gameState, constants);
+    //graphics.attractorBasins = attractorBasins(gameState, constants);
     gameState.rocketPos = cachedRocketPos;
     gameState.highlightPath = cachedHighlightPath;
     renderGame(gameState, constants, graphics);
@@ -590,7 +605,8 @@ function startGame() {
     gameState = initialGameState;
     gameState.runningQ = false;
     gameState.debugQ = debugQ;
-    graphics.forceVectors = computeForceVectors(gameState, constants);
+    gameState.runTime = 0;
+    //graphics.forceVectors = computeForceVectors(gameState, constants);
     renderGame(gameState, constants, graphics);
   });
 
@@ -615,8 +631,8 @@ function startGame() {
 
   //graphics.attractorBasins = attractorBasins(gameState, constants);
   gameState.highlightPath = [initialRocketPos];
-  (gameState.rocketPos = [0.75, 0.1]),
-    (graphics.forceVectors = computeForceVectors(gameState, constants));
+  gameState.rocketPos = [0.75, 0.1];
+  //graphics.forceVectors = computeForceVectors(gameState, constants);
 
   renderGame(gameState, constants, graphics);
 
