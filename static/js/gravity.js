@@ -141,18 +141,21 @@ function stepRocket(gameState, constants) {
   //console.log('vx = ' + vx);
   //console.log('vy = ' + vy);
   // if the rocket is inside the target, the target slows it down:
+  var sin = Math.sin(10.0 * gameState.runTime * 2 * Math.PI);
+  var currentTargetWidth = 3.0 * constants.planetWidth * sin;
   if (
     gameState.rocketPos[0] <=
-      gameState.targetPosition[0] + constants.targetWidth / 2 &&
+      gameState.targetPosition[0] + currentTargetWidth / 2 &&
     gameState.rocketPos[0] >=
-      gameState.targetPosition[0] - constants.targetWidth / 2 &&
+      gameState.targetPosition[0] - currentTargetWidth / 2 &&
     gameState.rocketPos[1] <=
-      gameState.targetPosition[1] + constants.targetWidth / 2 &&
+      gameState.targetPosition[1] + currentTargetWidth / 2 &&
     gameState.rocketPos[1] >=
-      gameState.targetPosition[1] - constants.targetWidth / 2
+      gameState.targetPosition[1] - currentTargetWidth / 2
   ) {
     vx = 0.0;
     vy = 0.0;
+    gameState.runningQ = false;
   }
   // find the change in position in x and y
   var dx = vx * constants.dt;
@@ -459,13 +462,65 @@ function renderGame(gameState, constants, graphics) {
   var xTargetCanvas = xTarget * graphics.canvasWidth;
   var yTargetCanvas = (1.0 - yTarget) * graphics.canvasHeight;
   var targetWidthCanvas = constants.targetWidth * graphics.canvasWidth;
-  graphics.ctx.fillStyle = "red";
-  graphics.ctx.fillRect(
+  graphics.ctx.fillStyle = "black";
+  graphics.ctx.globalAlpha = 0.2;
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(
     xTargetCanvas - targetWidthCanvas / 2.0,
     yTargetCanvas - targetWidthCanvas / 2.0,
-    targetWidthCanvas,
-    targetWidthCanvas
+    Math.abs(
+      constants.planetWidth *
+        3.0 *
+        graphics.canvasWidth *
+        Math.sin(10.0 * gameState.runTime * 2 * Math.PI)
+    ),
+    0,
+    2 * Math.PI,
+    false
   );
+  graphics.ctx.closePath();
+  graphics.ctx.fill();
+  graphics.ctx.globalAlpha = 0.4;
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(
+    xTargetCanvas - targetWidthCanvas / 2.0,
+    yTargetCanvas - targetWidthCanvas / 2.0,
+    Math.abs(
+      constants.planetWidth *
+        2.0 *
+        graphics.canvasWidth *
+        Math.sin(10.0 * gameState.runTime * 2 * Math.PI)
+    ),
+    0,
+    2 * Math.PI,
+    false
+  );
+  graphics.ctx.closePath();
+  graphics.ctx.fill();
+  graphics.ctx.globalAlpha = 0.6;
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(
+    xTargetCanvas - targetWidthCanvas / 2.0,
+    yTargetCanvas - targetWidthCanvas / 2.0,
+    Math.abs(
+      constants.planetWidth *
+        1.0 *
+        graphics.canvasWidth *
+        Math.sin(10.0 * gameState.runTime * 2 * Math.PI)
+    ),
+    0,
+    2 * Math.PI,
+    false
+  );
+  graphics.ctx.closePath();
+  graphics.ctx.fill();
+  graphics.ctx.restore();
+  // graphics.ctx.fillRect(
+  //   xTargetCanvas - targetWidthCanvas / 2.0,
+  //   yTargetCanvas - targetWidthCanvas / 2.0,
+  //   targetWidthCanvas,
+  //   targetWidthCanvas
+  // );
   // draw the rocket
   var xCanvas = rocketPosX * graphics.canvasWidth;
   var yCanvas = (1.0 - rocketPosY) * graphics.canvasHeight;
