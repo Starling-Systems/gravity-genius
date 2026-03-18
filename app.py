@@ -4,6 +4,11 @@ import os
 
 app = Flask(__name__, static_folder='static')
 
+
+@app.route('/')
+def home():
+    return send_from_directory(app.static_folder, 'home.html')
+
 @app.route('/play')
 def play():
     return send_from_directory(app.static_folder, 'index.html')

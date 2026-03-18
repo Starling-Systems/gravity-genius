@@ -1,29 +1,46 @@
-<html>
+<!doctype html>
+<html lang="en">
   <head>
-    <title>Gravity Genius</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="http://fonts.googleapis.com/css?family=Monda"
-      rel="stylesheet"
-      type="text/css"
+    <meta charset="UTF-8" />
+    <title>Gravity Genius | Play</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <link href="static/css/game.css" rel="stylesheet" />
-    <script src="static/js/gravity.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/game.css" rel="stylesheet" />
+    <script src="/static/js/gravity.js" defer></script>
   </head>
   <body>
-    <h1>Gravity Genius</h1>
-    <div id="buttons">
-      <button id="start">start</button>
-      <button id="pause">pause</button>
-      <button id="reset">reset</button>
-      <label><input type="checkbox" id="debug" value="false" />debug</label>
-    </div>
-    <div id="canvas">
-      <canvas id="myCanvas"></canvas>
-    </div>
-    <footer>
-      Avoid the black hole! <br />
-      How long can you keep the planet moving?
-    </footer>
+    <main class="game-shell">
+      <header>
+        <a href="/" class="home-link">Back</a>
+        <h1>Gravity Genius</h1>
+        <p class="hint">Tilt your phone to steer through the gravity field.</p>
+      </header>
+
+      <section id="buttons" aria-label="Game controls">
+        <button id="start">Start</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+        <button id="motion">Enable Tilt</button>
+        <label class="debug-label"
+          ><input type="checkbox" id="debug" value="false" />Debug</label
+        >
+      </section>
+
+      <section id="status-bar" aria-live="polite">Tilt status: pending</section>
+
+      <section id="canvas-wrap">
+        <canvas id="myCanvas"></canvas>
+      </section>
+
+      <footer>Avoid the black hole. Survive as long as possible.</footer>
+    </main>
   </body>
 </html>

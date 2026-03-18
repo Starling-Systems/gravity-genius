@@ -1,49 +1,178 @@
-canvas {
-  border-style: solid;
-  border-color: gray;
-  border-width: 1px;
+:root {
+  --space-0: #04060f;
+  --space-1: #0e1a3d;
+  --space-2: #1e245f;
+  --neon-blue: #78e6ff;
+  --neon-gold: #ffdc75;
+  --ink: #0a0d1f;
+  --text: #eff5ff;
+  --ui-panel: rgba(5, 11, 36, 0.78);
 }
 
-#myCanvas {
-  max-width: 500px;
+* {
+  box-sizing: border-box;
 }
 
-h1 {
-  font-size: 24px;
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "Space Mono", monospace;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(120, 230, 255, 0.15),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 85% 16%,
+      rgba(255, 220, 117, 0.12),
+      transparent 20%
+    ),
+    linear-gradient(
+      170deg,
+      var(--space-0) 0%,
+      var(--space-1) 45%,
+      var(--space-2) 100%
+    );
 }
 
-#canvas,
-#buttons,
-h1 {
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(2px 2px at 20% 15%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 35% 75%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 75% 22%, #fff, transparent),
+    radial-gradient(2px 2px at 66% 72%, #fff, transparent),
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    auto,
+    auto,
+    100% 4px;
+}
+
+.game-shell {
+  width: min(980px, 94vw);
+  margin: 0 auto;
+  min-height: 100vh;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: max(0.9rem, env(safe-area-inset-top)) 0 1.1rem;
+}
+
+header {
   text-align: center;
 }
 
-footer {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 12px;
-  font-family: "Verdana";
+.home-link {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--neon-blue);
+  font-size: 0.78rem;
+  margin-bottom: 0.35rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.15rem, 4.4vw, 1.95rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+  font-family: "Press Start 2P", monospace;
+  color: var(--neon-gold);
+  text-shadow: 0 0 12px rgba(255, 220, 117, 0.46);
+}
+
+.hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  opacity: 0.92;
 }
 
 #buttons {
-  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+button,
+.debug-label {
+  height: 2.7rem;
+  border-radius: 0.8rem;
+  border: 2px solid var(--neon-blue);
+  background: linear-gradient(180deg, #172760 0%, #111847 100%);
+  color: var(--text);
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 button {
-  font-family: Monda;
-  font-size: 14px;
-  border-radius: 5px;
-  border-color: #778899;
-  border-width: 1px;
-  border-style: solid;
-  background-color: #ddeeff;
-  margin: 0 5px;
+  width: 100%;
 }
 
-@media screen and (max-width: 768px) {
+.debug-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-nav {
+input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+}
+
+#status-bar {
   text-align: center;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(120, 230, 255, 0.45);
+  background: var(--ui-panel);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04rem;
+}
+
+#canvas-wrap {
+  text-align: center;
+}
+
+#myCanvas {
+  width: 100%;
+  max-width: 520px;
+  max-height: 74vh;
+  border: 2px solid var(--neon-blue);
+  border-radius: 0.75rem;
+  background: #f6f9ff;
+  box-shadow:
+    0 0 0 2px rgba(120, 230, 255, 0.22),
+    0 10px 30px rgba(2, 6, 20, 0.5);
+}
+
+footer {
+  text-align: center;
+  font-size: 0.74rem;
+  opacity: 0.9;
+}
+
+@media (min-width: 760px) {
+  #buttons {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .game-shell {
+    gap: 1rem;
+    padding-top: 1.2rem;
+  }
+
+  #myCanvas {
+    max-height: 65vh;
+  }
 }
