@@ -71,12 +71,40 @@ header {
   text-align: center;
 }
 
+.title-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
 .home-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
-  color: var(--neon-blue);
-  font-size: 0.78rem;
-  margin-bottom: 0.35rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(120, 230, 255, 0.55);
+  background: rgba(11, 24, 71, 0.65);
+  box-shadow: 0 0 10px rgba(120, 230, 255, 0.28);
+  padding: 0.22rem;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-link:hover,
+.home-link:focus-visible {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0 15px rgba(120, 230, 255, 0.48);
+}
+
+.home-icon {
+  display: block;
+  width: clamp(24px, 6vw, 34px);
+  height: clamp(24px, 6vw, 34px);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 h1 {
