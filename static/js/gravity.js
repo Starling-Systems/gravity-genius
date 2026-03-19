@@ -524,12 +524,17 @@ function renderGame(gameState, constants, graphics) {
   // draw the rocket
   var xCanvas = rocketPosX * graphics.canvasWidth;
   var yCanvas = (1.0 - rocketPosY) * graphics.canvasHeight;
-  graphics.ctx.lineWidth = 1.0;
-  graphics.ctx.fillStyle = "black";
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(xCanvas, yCanvas, 5, 0, 2 * Math.PI, false);
-  graphics.ctx.closePath();
-  graphics.ctx.fill();
+  var moonGlyph = "🌖";
+  var moonSize = Math.max(16, Math.round(graphics.canvasWidth * 0.04));
+  graphics.ctx.save();
+  graphics.ctx.font =
+    moonSize + "px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+  graphics.ctx.textAlign = "center";
+  graphics.ctx.textBaseline = "middle";
+  graphics.ctx.shadowColor = "rgba(255, 230, 145, 0.45)";
+  graphics.ctx.shadowBlur = 8;
+  graphics.ctx.fillText(moonGlyph, xCanvas, yCanvas);
+  graphics.ctx.restore();
   // draw line to nearest planet
   var nearestPlanetXY = gameState.planetPositions[nearestPlanetIndex];
   var nearestPlanetXCanvas = nearestPlanetXY[0] * graphics.canvasWidth;
