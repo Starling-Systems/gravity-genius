@@ -425,7 +425,15 @@ function renderGame(gameState, constants, graphics) {
   graphics.ctx.strokeStyle = "#d3d3d3";
   graphics.ctx.stroke();
   // render planets
-  var planetColors = ["blue", "green", "purple", "yellow", "orange", "pink"];
+  var planetAccentColors = [
+    "#7fd1ff",
+    "#9bff8a",
+    "#f69cff",
+    "#ffe47d",
+    "#ffb07c",
+    "#b7a2ff",
+  ];
+  var ringedPlanetGlyphs = ["🪐", "🪐", "🪐", "🪐", "🪐", "🪐"];
   var rocketPosX = gameState.rocketPos[0];
   var rocketPosY = gameState.rocketPos[1];
   var minPlanetDistance;
@@ -442,19 +450,35 @@ function renderGame(gameState, constants, graphics) {
       minPlanetDistance = r;
       nearestPlanetIndex = i;
     }
-    graphics.ctx.lineWidth = 1.0;
+    var accentColor = planetAccentColors[i % planetAccentColors.length];
+    var ringedGlyph = ringedPlanetGlyphs[i % ringedPlanetGlyphs.length];
+    var glyphSize = Math.max(18, Math.round(graphics.canvasWidth * 0.055));
+
+    // Color halo keeps each ringed planet visually distinct while using emoji glyphs.
+    graphics.ctx.save();
+    graphics.ctx.globalAlpha = 0.35;
+    graphics.ctx.fillStyle = accentColor;
     graphics.ctx.beginPath();
-    graphics.ctx.fillStyle = planetColors[i];
     graphics.ctx.arc(
       xPlanetCanvas,
       yPlanetCanvas,
-      constants.planetWidth * graphics.canvasWidth,
+      constants.planetWidth * graphics.canvasWidth * 1.15,
       0,
       2 * Math.PI,
       false,
     );
     graphics.ctx.closePath();
     graphics.ctx.fill();
+
+    graphics.ctx.globalAlpha = 1.0;
+    graphics.ctx.font =
+      glyphSize + "px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+    graphics.ctx.textAlign = "center";
+    graphics.ctx.textBaseline = "middle";
+    graphics.ctx.shadowColor = accentColor;
+    graphics.ctx.shadowBlur = 10;
+    graphics.ctx.fillText(ringedGlyph, xPlanetCanvas, yPlanetCanvas);
+    graphics.ctx.restore();
   });
   // draw the target
   var xTarget = gameState.targetPosition[0];
