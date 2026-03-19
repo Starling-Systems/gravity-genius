@@ -433,7 +433,13 @@ function renderGame(gameState, constants, graphics) {
     "#ffb07c",
     "#b7a2ff",
   ];
-  var ringedPlanetGlyphs = ["🪐", "🪐", "🪐", "🪐", "🪐", "🪐"];
+  var ringedPlanetGlyphs = ["🪐", "🪐", "🪐", "🪐"];
+  var ringStyles = [
+    { rotation: -0.18, flipX: false },
+    { rotation: 0.12, flipX: true },
+    { rotation: 0.05, flipX: false },
+    { rotation: -0.1, flipX: true },
+  ];
   var rocketPosX = gameState.rocketPos[0];
   var rocketPosY = gameState.rocketPos[1];
   var minPlanetDistance;
@@ -452,32 +458,20 @@ function renderGame(gameState, constants, graphics) {
     }
     var accentColor = planetAccentColors[i % planetAccentColors.length];
     var ringedGlyph = ringedPlanetGlyphs[i % ringedPlanetGlyphs.length];
+    var ringStyle = ringStyles[i % ringStyles.length];
     var glyphSize = Math.max(18, Math.round(graphics.canvasWidth * 0.055));
 
-    // Color halo keeps each ringed planet visually distinct while using emoji glyphs.
     graphics.ctx.save();
-    graphics.ctx.globalAlpha = 0.35;
-    graphics.ctx.fillStyle = accentColor;
-    graphics.ctx.beginPath();
-    graphics.ctx.arc(
-      xPlanetCanvas,
-      yPlanetCanvas,
-      constants.planetWidth * graphics.canvasWidth * 1.15,
-      0,
-      2 * Math.PI,
-      false,
-    );
-    graphics.ctx.closePath();
-    graphics.ctx.fill();
-
-    graphics.ctx.globalAlpha = 1.0;
     graphics.ctx.font =
       glyphSize + "px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
     graphics.ctx.textAlign = "center";
     graphics.ctx.textBaseline = "middle";
     graphics.ctx.shadowColor = accentColor;
     graphics.ctx.shadowBlur = 10;
-    graphics.ctx.fillText(ringedGlyph, xPlanetCanvas, yPlanetCanvas);
+    graphics.ctx.translate(xPlanetCanvas, yPlanetCanvas);
+    graphics.ctx.rotate(ringStyle.rotation);
+    graphics.ctx.scale(ringStyle.flipX ? -1 : 1, 1);
+    graphics.ctx.fillText(ringedGlyph, 0, 0);
     graphics.ctx.restore();
   });
   // draw the target
