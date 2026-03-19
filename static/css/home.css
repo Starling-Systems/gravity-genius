@@ -7,9 +7,6 @@
   --neon-gold: #ffd873;
   --card-bg: rgba(3, 8, 30, 0.72);
   --card-border: #67e8ff;
-  --marble-light: #e6edf9;
-  --marble-mid: #b8c3d9;
-  --marble-dark: #707f9f;
 }
 
 * {
@@ -153,109 +150,15 @@ h1 {
   );
 }
 
-.einstein-bust {
+.einstein-bust-image {
   width: min(72vw, 360px);
-  aspect-ratio: 3 / 4;
-  position: relative;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 2px solid rgba(103, 232, 255, 0.38);
+  border-radius: 0.75rem;
+  background: rgba(3, 8, 30, 0.5);
   filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.45));
-}
-
-.hair,
-.head,
-.brow,
-.eye,
-.mustache,
-.neck,
-.pedestal {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.hair {
-  top: 12%;
-  width: 76%;
-  height: 34%;
-  background: linear-gradient(180deg, #f3f7ff 0%, #c7d2e8 100%);
-  border-radius: 50% 50% 42% 42%;
-  clip-path: polygon(
-    7% 51%,
-    18% 21%,
-    34% 15%,
-    50% 10%,
-    67% 15%,
-    83% 22%,
-    94% 52%,
-    86% 85%,
-    14% 85%
-  );
-}
-
-.head {
-  top: 24%;
-  width: 48%;
-  height: 34%;
-  background: linear-gradient(160deg, var(--marble-light), var(--marble-mid));
-  border-radius: 45% 45% 50% 50%;
-}
-
-.brow {
-  top: 33%;
-  width: 28%;
-  height: 4%;
-  background: var(--marble-dark);
-  border-radius: 999px;
-  opacity: 0.6;
-}
-
-.eye {
-  top: 37%;
-  width: 5.5%;
-  height: 1.8%;
-  background: #1d263f;
-  border-radius: 999px;
-}
-
-.eye-left {
-  margin-left: -7%;
-}
-
-.eye-right {
-  margin-left: 7%;
-}
-
-.mustache {
-  top: 43%;
-  width: 28%;
-  height: 10%;
-  background: linear-gradient(180deg, #f4f8ff, #bcc8df);
-  border-radius: 40% 40% 60% 60%;
-  clip-path: polygon(
-    0 42%,
-    23% 8%,
-    50% 30%,
-    77% 8%,
-    100% 42%,
-    72% 100%,
-    50% 82%,
-    27% 100%
-  );
-}
-
-.neck {
-  top: 56%;
-  width: 24%;
-  height: 14%;
-  background: linear-gradient(180deg, var(--marble-mid), var(--marble-dark));
-  border-radius: 20% 20% 15% 15%;
-}
-
-.pedestal {
-  top: 64%;
-  width: 70%;
-  height: 30%;
-  background: linear-gradient(180deg, #d2dbee 0%, #9aa9c9 100%);
-  border-radius: 8% 8% 12% 12%;
 }
 
 @media (max-width: 900px) {
@@ -274,7 +177,7 @@ h1 {
     min-height: 290px;
   }
 
-  .einstein-bust {
+  .einstein-bust-image {
     width: min(78vw, 300px);
   }
 }
