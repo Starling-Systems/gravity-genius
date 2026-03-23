@@ -11,6 +11,108 @@ function yToCanvas(y, graphics) {
   return (1.0 - y) * graphics.canvasHeight;
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getOrbitChallenges() {
+  return [
+    {
+      name: "Orbit 1",
+      center: [0.5, 0.5],
+      radius: 0.2,
+      tolerance: 0.03,
+      requiredSamples: 180,
+      requiredBinCount: 22,
+      binCount: 30,
+    },
+    {
+      name: "Orbit 2",
+      center: [0.5, 0.5],
+      radius: 0.27,
+      tolerance: 0.03,
+      requiredSamples: 200,
+      requiredBinCount: 24,
+      binCount: 32,
+    },
+    {
+      name: "Orbit 3",
+      center: [0.5, 0.5],
+      radius: 0.14,
+      tolerance: 0.025,
+      requiredSamples: 220,
+      requiredBinCount: 28,
+      binCount: 36,
+    },
+  ];
+}
+
+function createOrbitTraceState(challenge) {
+  return {
+    samplesInBand: 0,
+    streakInBand: 0,
+    binsVisited: Array(challenge.binCount).fill(false),
+    binsVisitedCount: 0,
+    completionFrameCount: 0,
+  };
+}
+
+function getCurrentOrbitChallenge(gameState) {
+  if (gameState.orbitChallengeIndex >= gameState.orbitChallenges.length) {
+    return null;
+  }
+  return gameState.orbitChallenges[gameState.orbitChallengeIndex];
+}
+
+function updateOrbitChallengeProgress(gameState) {
+  var challenge = getCurrentOrbitChallenge(gameState);
+  if (!challenge || !gameState.runningQ) return;
+
+  var centerX = challenge.center[0];
+  var centerY = challenge.center[1];
+  var dx = gameState.rocketPos[0] - centerX;
+  var dy = gameState.rocketPos[1] - centerY;
+  var radius = Math.hypot(dx, dy);
+  var radialError = Math.abs(radius - challenge.radius);
+  var inBand = radialError <= challenge.tolerance;
+
+  if (inBand) {
+    gameState.orbitTrace.samplesInBand++;
+    gameState.orbitTrace.streakInBand++;
+
+    var angle = Math.atan2(dy, dx);
+    if (angle < 0) angle += Math.PI * 2;
+    var binIndex = Math.floor((angle / (Math.PI * 2)) * challenge.binCount);
+    binIndex = clamp(binIndex, 0, challenge.binCount - 1);
+    if (!gameState.orbitTrace.binsVisited[binIndex]) {
+      gameState.orbitTrace.binsVisited[binIndex] = true;
+      gameState.orbitTrace.binsVisitedCount++;
+    }
+  } else {
+    gameState.orbitTrace.streakInBand = 0;
+  }
+
+  var completeByCoverage =
+    gameState.orbitTrace.samplesInBand >= challenge.requiredSamples &&
+    gameState.orbitTrace.binsVisitedCount >= challenge.requiredBinCount;
+  if (completeByCoverage) {
+    gameState.orbitTrace.completionFrameCount++;
+  } else {
+    gameState.orbitTrace.completionFrameCount = 0;
+  }
+
+  if (gameState.orbitTrace.completionFrameCount >= 15) {
+    gameState.orbitChallengeIndex++;
+    gameState.orbitTrace = createOrbitTraceState(
+      getCurrentOrbitChallenge(gameState) || challenge,
+    );
+    gameState.highlightPath = [gameState.rocketPos.slice()];
+    if (gameState.orbitChallengeIndex >= gameState.orbitChallenges.length) {
+      gameState.runningQ = false;
+    }
+  }
+}
+
 function dvFromPlanet(planetPos, rocketPos, constants) {
   var distx = rocketPos[0] - planetPos[0];
   var disty = rocketPos[1] - planetPos[1];
@@ -140,23 +242,6 @@ function stepRocket(gameState, constants) {
 
   //console.log('vx = ' + vx);
   //console.log('vy = ' + vy);
-  // if the rocket is inside the target, the target slows it down:
-  var sin = Math.sin(10.0 * gameState.runTime * 2 * Math.PI);
-  var currentTargetWidth = 3.0 * constants.planetWidth * sin;
-  if (
-    gameState.rocketPos[0] <=
-      gameState.targetPosition[0] + currentTargetWidth / 2 &&
-    gameState.rocketPos[0] >=
-      gameState.targetPosition[0] - currentTargetWidth / 2 &&
-    gameState.rocketPos[1] <=
-      gameState.targetPosition[1] + currentTargetWidth / 2 &&
-    gameState.rocketPos[1] >=
-      gameState.targetPosition[1] - currentTargetWidth / 2
-  ) {
-    vx = 0.0;
-    vy = 0.0;
-    gameState.runningQ = false;
-  }
   // find the change in position in x and y
   var dx = vx * constants.dt;
   var dy = vy * constants.dt;
@@ -238,8 +323,51 @@ function stepRocket(gameState, constants) {
   var newGameState = JSON.parse(JSON.stringify(gameState));
   newGameState.rocketPos = [x, y]; // TODO: rename to rocketPosition
   newGameState.rocketVel = [vx, vy]; // TODO: rename to rocketVelocity
+  updateOrbitChallengeProgress(newGameState);
 
   return newGameState;
+}
+
+function renderOrbitTarget(graphics, challenge) {
+  if (!challenge) return;
+
+  var centerCanvasX = xToCanvas(challenge.center[0], graphics);
+  var centerCanvasY = yToCanvas(challenge.center[1], graphics);
+  var radiusCanvas = challenge.radius * graphics.canvasWidth;
+  var toleranceCanvas = challenge.tolerance * graphics.canvasWidth;
+
+  graphics.ctx.save();
+  graphics.ctx.lineWidth = Math.max(8, toleranceCanvas * 2);
+  graphics.ctx.strokeStyle = "rgba(255, 198, 80, 0.45)";
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(centerCanvasX, centerCanvasY, radiusCanvas, 0, Math.PI * 2);
+  graphics.ctx.stroke();
+
+  graphics.ctx.lineWidth = 2;
+  graphics.ctx.strokeStyle = "rgba(255, 153, 0, 0.9)";
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(centerCanvasX, centerCanvasY, radiusCanvas, 0, Math.PI * 2);
+  graphics.ctx.stroke();
+  graphics.ctx.restore();
+}
+
+function renderBlackHole(graphics, position) {
+  var xCanvas = xToCanvas(position[0], graphics);
+  var yCanvas = yToCanvas(position[1], graphics);
+  var outerRadius = Math.max(12, graphics.canvasWidth * 0.03);
+  var innerRadius = outerRadius * 0.55;
+
+  graphics.ctx.save();
+  graphics.ctx.fillStyle = "rgba(255, 230, 170, 0.35)";
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(xCanvas, yCanvas, outerRadius, 0, Math.PI * 2);
+  graphics.ctx.fill();
+
+  graphics.ctx.fillStyle = "#111111";
+  graphics.ctx.beginPath();
+  graphics.ctx.arc(xCanvas, yCanvas, innerRadius, 0, Math.PI * 2);
+  graphics.ctx.fill();
+  graphics.ctx.restore();
 }
 
 function renderBackground(graphics, constants) {
@@ -353,6 +481,9 @@ function computeForceVectors(gameState, constants) {
 
 function renderGame(gameState, constants, graphics) {
   renderBackground(graphics, constants);
+  var activeChallenge = getCurrentOrbitChallenge(gameState);
+  renderOrbitTarget(graphics, activeChallenge);
+  renderBlackHole(graphics, gameState.targetPosition);
   // render debug panel
   var yInc = 0.02;
   var yIncCanvas = 0.02 * graphics.canvasHeight;
@@ -474,71 +605,7 @@ function renderGame(gameState, constants, graphics) {
     graphics.ctx.fillText(ringedGlyph, 0, 0);
     graphics.ctx.restore();
   });
-  // draw the target
-  var xTarget = gameState.targetPosition[0];
-  var yTarget = gameState.targetPosition[1];
-  var xTargetCanvas = xTarget * graphics.canvasWidth;
-  var yTargetCanvas = (1.0 - yTarget) * graphics.canvasHeight;
-  var targetWidthCanvas = constants.targetWidth * graphics.canvasWidth;
-  graphics.ctx.fillStyle = "black";
-  graphics.ctx.globalAlpha = 0.2;
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(
-    xTargetCanvas - targetWidthCanvas / 2.0,
-    yTargetCanvas - targetWidthCanvas / 2.0,
-    Math.abs(
-      constants.planetWidth *
-        3.0 *
-        graphics.canvasWidth *
-        Math.sin(10.0 * gameState.runTime * 2 * Math.PI),
-    ),
-    0,
-    2 * Math.PI,
-    false,
-  );
-  graphics.ctx.closePath();
-  graphics.ctx.fill();
-  graphics.ctx.globalAlpha = 0.4;
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(
-    xTargetCanvas - targetWidthCanvas / 2.0,
-    yTargetCanvas - targetWidthCanvas / 2.0,
-    Math.abs(
-      constants.planetWidth *
-        2.0 *
-        graphics.canvasWidth *
-        Math.sin(10.0 * gameState.runTime * 2 * Math.PI),
-    ),
-    0,
-    2 * Math.PI,
-    false,
-  );
-  graphics.ctx.closePath();
-  graphics.ctx.fill();
-  graphics.ctx.globalAlpha = 0.6;
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(
-    xTargetCanvas - targetWidthCanvas / 2.0,
-    yTargetCanvas - targetWidthCanvas / 2.0,
-    Math.abs(
-      constants.planetWidth *
-        1.0 *
-        graphics.canvasWidth *
-        Math.sin(10.0 * gameState.runTime * 2 * Math.PI),
-    ),
-    0,
-    2 * Math.PI,
-    false,
-  );
-  graphics.ctx.closePath();
-  graphics.ctx.fill();
-  graphics.ctx.restore();
-  // graphics.ctx.fillRect(
-  //   xTargetCanvas - targetWidthCanvas / 2.0,
-  //   yTargetCanvas - targetWidthCanvas / 2.0,
-  //   targetWidthCanvas,
-  //   targetWidthCanvas
-  // );
+
   // draw the rocket
   var xCanvas = rocketPosX * graphics.canvasWidth;
   var yCanvas = (1.0 - rocketPosY) * graphics.canvasHeight;
@@ -603,7 +670,28 @@ function startGame() {
 
   function setTiltStatus(text) {
     if (statusBar) {
-      statusBar.textContent = "Tilt status: " + text;
+      var challenge = getCurrentOrbitChallenge(gameState);
+      var progress = "";
+      if (challenge) {
+        var sampleProgress = Math.round(
+          (100 * gameState.orbitTrace.samplesInBand) / challenge.requiredSamples,
+        );
+        var coverageProgress = Math.round(
+          (100 * gameState.orbitTrace.binsVisitedCount) /
+            challenge.requiredBinCount,
+        );
+        progress =
+          " | " +
+          challenge.name +
+          " precision: " +
+          Math.min(100, sampleProgress) +
+          "% | coverage: " +
+          Math.min(100, coverageProgress) +
+          "%";
+      } else {
+        progress = " | all orbit challenges complete";
+      }
+      statusBar.textContent = "Tilt status: " + text + progress;
     }
   }
 
@@ -641,7 +729,7 @@ function startGame() {
     rocketMass: 0.0000001,
     G: 10.0, // gravitational constant
     dt: 0.001, // simulation time step
-    targetForceMultiplier: 0.1,
+    targetForceMultiplier: 0.13,
     targetWidth: 0.04,
     accelerometerFactor: 40.0,
     planetWidth: 0.04,
@@ -651,20 +739,27 @@ function startGame() {
   };
 
   var initialGameState = {
-    rocketPos: [0.75, 0.1],
-    rocketVel: [-1.0, 1.0],
+    rocketPos: [0.81, 0.5],
+    rocketVel: [0.0, 2.0],
     planetPositions: [
       [0.25, 0.25],
       [0.75, 0.75],
     ],
     targetPosition: [0.5, 0.5],
     accelerometer: [0.0, 0.0],
-    highlightPath: [[0.75, 0.1]],
+    highlightPath: [[0.81, 0.5]],
     orbitCount: 0,
     debugQ: false,
     runningQ: false,
     runTime: 0,
+    orbitChallenges: getOrbitChallenges(),
+    orbitChallengeIndex: 0,
+    orbitTrace: null,
   };
+
+  initialGameState.orbitTrace = createOrbitTraceState(
+    initialGameState.orbitChallenges[0],
+  );
 
   function cloneInitialState() {
     return JSON.parse(JSON.stringify(initialGameState));
@@ -700,6 +795,7 @@ function startGame() {
     enableTilt();
     gameState.runningQ = true;
     gameState.runTime = 0;
+    setTiltStatus("active");
     stepGameState();
   });
 
@@ -707,6 +803,7 @@ function startGame() {
   pauseButton.addEventListener("click", function () {
     gameState.runningQ = false;
     renderGame(gameState, constants, graphics);
+    setTiltStatus("paused");
   });
 
   graphics.canvas.addEventListener("click", function (event) {
@@ -721,6 +818,7 @@ function startGame() {
     gameState.rocketPos = cachedRocketPos;
     gameState.highlightPath = cachedHighlightPath;
     renderGame(gameState, constants, graphics);
+    setTiltStatus("active");
   });
 
   var debugCheckbox = document.getElementById("debug");
@@ -737,6 +835,7 @@ function startGame() {
     gameState.debugQ = debugQ;
     gameState.runTime = 0;
     renderGame(gameState, constants, graphics);
+    setTiltStatus("pending");
   });
 
   window.addEventListener("devicemotion", function (event) {
@@ -746,9 +845,9 @@ function startGame() {
     }
   });
 
-  var initialRocketPos = [0.75, 0.1];
+  var initialRocketPos = [0.81, 0.5];
   gameState.highlightPath = [initialRocketPos];
-  gameState.rocketPos = [0.75, 0.1];
+  gameState.rocketPos = [0.81, 0.5];
 
   setTiltStatus("pending");
   resizeCanvas();
@@ -759,6 +858,11 @@ function startGame() {
     requestAnimationFrame(stepGameState);
     gameState = stepRocket(gameState, constants);
     renderGame(gameState, constants, graphics);
+    if (gameState.orbitChallengeIndex >= gameState.orbitChallenges.length) {
+      setTiltStatus("complete");
+      return;
+    }
+    setTiltStatus("active");
   }
 
   stepGameState();
