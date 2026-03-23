@@ -674,7 +674,8 @@ function startGame() {
       var progress = "";
       if (challenge) {
         var sampleProgress = Math.round(
-          (100 * gameState.orbitTrace.samplesInBand) / challenge.requiredSamples,
+          (100 * gameState.orbitTrace.samplesInBand) /
+            challenge.requiredSamples,
         );
         var coverageProgress = Math.round(
           (100 * gameState.orbitTrace.binsVisitedCount) /
