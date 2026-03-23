@@ -80,7 +80,8 @@ function updateOrbitChallengeProgress(gameState) {
     gameState.orbitTrace.samplesInBand++;
     gameState.orbitTrace.streakInBand++;
 
-    var angle = Math.atan2(dy, dx);
+    // Use screen-space angle (y down) so filled bins match rendered arc segments.
+    var angle = Math.atan2(-dy, dx);
     if (angle < 0) angle += Math.PI * 2;
     var binIndex = Math.floor((angle / (Math.PI * 2)) * challenge.binCount);
     binIndex = clamp(binIndex, 0, challenge.binCount - 1);
@@ -328,26 +329,58 @@ function stepRocket(gameState, constants) {
   return newGameState;
 }
 
-function renderOrbitTarget(graphics, challenge) {
+function renderOrbitTarget(graphics, challenge, orbitTrace) {
   if (!challenge) return;
 
   var centerCanvasX = xToCanvas(challenge.center[0], graphics);
   var centerCanvasY = yToCanvas(challenge.center[1], graphics);
   var radiusCanvas = challenge.radius * graphics.canvasWidth;
   var toleranceCanvas = challenge.tolerance * graphics.canvasWidth;
+  var binCount = challenge.binCount;
+  var angleStep = (Math.PI * 2) / binCount;
+  var visitedBins = orbitTrace ? orbitTrace.binsVisited : [];
 
   graphics.ctx.save();
   graphics.ctx.lineWidth = Math.max(8, toleranceCanvas * 2);
-  graphics.ctx.strokeStyle = "rgba(255, 198, 80, 0.45)";
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(centerCanvasX, centerCanvasY, radiusCanvas, 0, Math.PI * 2);
-  graphics.ctx.stroke();
+  graphics.ctx.lineCap = "butt";
+
+  for (var i = 0; i < binCount; i++) {
+    var startAngle = i * angleStep;
+    var endAngle = startAngle + angleStep;
+    var isVisited = !!visitedBins[i];
+    graphics.ctx.strokeStyle = isVisited
+      ? "rgba(53, 220, 123, 0.75)"
+      : "rgba(255, 198, 80, 0.45)";
+    graphics.ctx.beginPath();
+    graphics.ctx.arc(
+      centerCanvasX,
+      centerCanvasY,
+      radiusCanvas,
+      startAngle,
+      endAngle,
+    );
+    graphics.ctx.stroke();
+  }
 
   graphics.ctx.lineWidth = 2;
-  graphics.ctx.strokeStyle = "rgba(255, 153, 0, 0.9)";
-  graphics.ctx.beginPath();
-  graphics.ctx.arc(centerCanvasX, centerCanvasY, radiusCanvas, 0, Math.PI * 2);
-  graphics.ctx.stroke();
+  for (var j = 0; j < binCount; j++) {
+    var outlineStartAngle = j * angleStep;
+    var outlineEndAngle = outlineStartAngle + angleStep;
+    var outlineVisited = !!visitedBins[j];
+    graphics.ctx.strokeStyle = outlineVisited
+      ? "rgba(25, 166, 86, 0.95)"
+      : "rgba(255, 153, 0, 0.9)";
+    graphics.ctx.beginPath();
+    graphics.ctx.arc(
+      centerCanvasX,
+      centerCanvasY,
+      radiusCanvas,
+      outlineStartAngle,
+      outlineEndAngle,
+    );
+    graphics.ctx.stroke();
+  }
+
   graphics.ctx.restore();
 }
 
@@ -482,7 +515,7 @@ function computeForceVectors(gameState, constants) {
 function renderGame(gameState, constants, graphics) {
   renderBackground(graphics, constants);
   var activeChallenge = getCurrentOrbitChallenge(gameState);
-  renderOrbitTarget(graphics, activeChallenge);
+  renderOrbitTarget(graphics, activeChallenge, gameState.orbitTrace);
   renderBlackHole(graphics, gameState.targetPosition);
   // render debug panel
   var yInc = 0.02;
